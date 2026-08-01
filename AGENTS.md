@@ -218,6 +218,20 @@ For HP or damage changes, test temporary HP, concentration, TokenTriggers, preve
 
 Run syntax validation when possible.
 
+## Delegated Work Quality Gate
+
+* Delegation is conditional, not automatic for every request.
+* Do not use subagents by default for a simple macro, a syntax question, a documentation question, or a small isolated change where delegation would not materially improve reliability.
+* For substantive bug diagnosis, nontrivial script revisions, broad audits, or architecture work, the lead agent should delegate independent read-heavy investigation when useful.
+* For a nontrivial code revision, normally use `roll20-explorer` before editing and `roll20-reviewer` after the lead agent has completed the proposed change.
+* Use only the number of subagents that the task actually needs. Prefer one focused explorer and one final reviewer over broad delegation.
+* The lead agent must wait for delegated results and personally verify them against the current active scripts and repository instructions.
+* The lead agent must make all repository edits itself. Subagents are read-only and must not modify files.
+* A subagent summary is not proof that the work is correct. If findings are incomplete, contradictory, or unsupported, the lead agent must investigate further or delegate a focused follow-up.
+* Before reporting a substantive task complete, the lead agent must review the completed diff, run syntax validation where feasible, perform relevant tests or provide exact Roll20 test steps with expected results, and report the validation outcome.
+* The lead agent must not tell the user that a task is complete until this quality gate is satisfied.
+* The user may explicitly require delegation for any task by saying, “Use the explorer and reviewer workflow for this.”
+
 ## Architecture Consistency
 
 Maintain consistent patterns for command parsing, GM permissions, validation, chat cards, errors, state initialization, versioning, public APIs, source/target handling, durations, and cleanup.
