@@ -162,7 +162,9 @@ Preserve existing CSS and template structure. Provide full copy/paste-ready macr
 
 ## Code Revision Format
 
-For targeted edits, provide:
+For targeted revisions, apply the approved change directly to the repository unless the user explicitly asks only for proposed replacement blocks or a review without edits.
+
+When providing proposed targeted edits, include:
 
 1. Exact current block.
 2. Exact replacement block.
@@ -173,12 +175,7 @@ Do not say “near this line,” use a lone brace as the placement reference, or
 
 Preserve indentation, spacing, comments, and naming.
 
-For substantial revisions, provide:
-
-* Complete versioned `.md` script
-* Separate change notes
-* Installation instructions
-* Required tests
+Do not provide downloadable builds or require the user to download, rename, move, or reorganize repository files manually.
 
 ## Debugging Process
 
@@ -237,9 +234,24 @@ Use version-numbered filenames.
 * Minor: meaningful feature or integration
 * Major: incompatible redesign
 
-Change notes should identify what changed, why, compatibility requirements, migration needs, tests, and limitations.
+When the user authorizes a script change, work directly in the repository.
 
-Maintain an appendable project changelog.
+For every completed script revision:
+
+1. Read the current active `.js` file in `Scripts` before editing.
+2. Determine the new version number under the existing versioning rules.
+3. Preserve the replaced active file unchanged in `Scripts/Prior Versions` using its existing filename and `.js` extension.
+4. Save the revised active script in `Scripts` as a `.js` file with the new versioned filename.
+5. Do not leave multiple active versions of the same script in the `Scripts` root.
+6. Never overwrite a prior-version file. If a file with that name already exists, compare them and preserve both unless they are confirmed identical.
+7. Append a dated entry to `Guides and Notes/Roll20-Coding-Change-Log.md` identifying the script and new version, what changed, why it changed, compatibility or migration requirements, validation performed, and known limitations.
+8. Use `Guides and Notes/Roll20-Coding-Change-Log.md` as the canonical changelog. Do not write new entries to `Roll20-Coding-Change-Log(1).md`.
+9. Keep JavaScript source files as `.js` files. Do not create new Markdown copies of JavaScript builds.
+10. Do not retroactively convert or reorganize existing prior-version files unless the user specifically requests it.
+
+After editing, run available syntax validation and relevant tests. Report the new active filename, archived filename, changelog entry, validation results, and changed-file list in chat.
+
+Do not commit or push changes unless the user explicitly requests it.
 
 ## Script Batches
 
@@ -269,8 +281,6 @@ When combining scripts:
 * Preserve working behavior.
 * Avoid speculative redesign and unrelated edits.
 * Do not assume unknown attributes, commands, APIs, or state.
-* Prefer downloadable builds for substantial changes.
-* Give exact placement instructions for manual edits.
 * Use clear versioned filenames.
 * Explain confirmed bugs plainly.
 * Do not revise code merely to provide revisions.
