@@ -1,0 +1,265 @@
+Roll20 Action Economy V2 — Continuation Guide
+
+I am building a Roll20 Mod/API script for Jumpgate using the 2024 D&D character sheets. I am rebuilding from scratch because the old script became too patched together.
+
+The new script is called:
+
+ActionEconomyV2
+Core design
+
+There are three command families:
+
+!ae
+
+Core action economy, movement, attacks, setup.
+
+!ae-effect
+
+Combat effects like dash, disengage, haste, reckless, concentration, fly, shield, sanctuary, divine favor.
+
+!ae-con
+
+Rules conditions like prone, poisoned, frightened, restrained, stunned, paralyzed, grappled, invisible, etc.
+
+Current V2 base features
+
+The V2 base script currently includes:
+
+PC recognition by character ID
+Universal targeting
+Movement speed storage
+Attack count storage
+Action / Bonus Action tracking for PCs
+Movement bar tracking with bar3
+Movement spending from token dragging
+Teleport / ignore next move
+Movement undo
+Add movement
+Spend movement
+Attack action / Extra Attack tracking
+Haste tracking
+Extra bonus action tracking
+Effects store
+Conditions store
+Action Economy update card
+Conditions & Effects card
+Important behavior goals
+
+PCs are the only tokens that should track:
+
+Action
+Bonus Action
+Automatic start-of-turn !ae update
+
+All tokens should eventually track:
+
+Movement
+Attacks
+Conditions
+Effects
+
+The script should support both selected-token and targeted-token use.
+
+Examples:
+
+!ae-effect dash
+!ae-effect dash @{target|Foe|token_id}
+!ae-con poisoned
+!ae-con poisoned @{target|Foe|token_id}
+Current foundational commands
+
+Keep these under !ae:
+
+!ae pcs
+!ae action
+!ae bonus
+!ae speed #
+!ae attacks #
+!ae attack
+!ae teleport
+!ae moveundo
+!ae addmove #
+!ae spendmove #
+!ae update
+!ae reset
+!ae off
+Effects command family
+
+These should move under !ae-effect:
+
+!ae-effect dash
+!ae-effect disengage
+!ae-effect dodge
+!ae-effect help
+!ae-effect hide
+!ae-effect ready
+!ae-effect haste
+!ae-effect slow
+!ae-effect fly
+!ae-effect mounted
+!ae-effect concentrate
+!ae-effect shield
+!ae-effect sanctuary
+!ae-effect divine
+!ae-effect reckless
+!ae-effect dying
+!ae-effect dead
+!ae-effect lockmove
+!ae-effect extrabonus
+!ae-effect dismount
+Conditions command family
+
+These should move under !ae-con:
+
+!ae-con blinded
+!ae-con charmed
+!ae-con deafened
+!ae-con exhaustion
+!ae-con frightened
+!ae-con grappled
+!ae-con incapacitated
+!ae-con invisible
+!ae-con paralyzed
+!ae-con petrified
+!ae-con poisoned
+!ae-con prone
+!ae-con restrained
+!ae-con stunned
+!ae-con unconscious
+Next development step
+
+The next step is not to add all conditions one by one manually.
+
+The next step is to add a true registry system:
+
+const EFFECTS = { ... };
+const CONDITIONS = { ... };
+
+Each entry should contain:
+
+{
+  display: "Poisoned",
+  marker: "marker id or null",
+  duration: "manual | endOfTurn | startOfNextTurn | movement | combat",
+  mechanical: "rules reminder text",
+  type: "effect or condition"
+}
+
+Then build generic functions:
+
+applyEffect(token, effectName)
+removeEffect(token, effectName)
+applyCondition(token, conditionName)
+removeCondition(token, conditionName)
+
+The existing V2 base already has simple versions of these, but they need to be expanded to support markers, duration behavior, and display text.
+
+Duration categories
+
+Use these duration buckets:
+
+endOfTurn
+
+Clears when that token’s turn ends.
+
+Examples:
+
+Dash
+Disengage
+startOfNextTurn
+
+Clears when that token’s next turn starts.
+
+Examples:
+
+Reckless
+Dodge
+Shield
+Ready
+manual
+
+Stays until removed.
+
+Examples:
+
+Poisoned
+Frightened
+Invisible
+Concentrating
+Flying
+Sanctuary
+Divine Favor
+movement
+
+Removed by movement or command.
+
+Example:
+
+Prone
+combat
+
+Removed when turn order is cleared.
+
+Examples:
+
+Haste
+Slow
+Mounted
+Marker list already decided
+
+Use the marker IDs from the previous condition/effect list. The important ones include:
+
+Blinded: Icon_-_Blinded_1-1_status_icon_token::266417
+Charmed: Icon_-_Charm_1-1_marker_icon_token::266357
+Frightened: Icon_-_Ghost_2-1_marker_icon_token::279701
+Grappled: Icon_-_Monk_1-1_marker_icon_token::279810
+Incapacitated: Icon_-_Sleep_1-1_marker_icon_token::279950
+Invisible: Icon_-_Invisibility_2-1_marker_icon_token::280003
+Poisoned: Icon_-_Poison_1-1_poisonous_icon_token::279996
+Prone: Icon_-_Prone_3-1_marker_icon_token::279617
+Restrained: Icon_-_Restrained_1-1_prison_icon_token::279705
+Stunned: Icon_-_Surprised_1-1_combat_icon_token::280117
+Unconscious: Icon_-_Unconscious_1-1_marker_icon_token::280345
+
+Dodge: Icon_-_Dodge_1-1_marker_icon_token::266168
+Haste: Icon_-_Boots_of_Flying_1-1_attunement_icon_token::266023
+Slow: Icon_-_Chains_2-1_marker_icon_token::266354
+Fly: Icon_-_Fly_3-1_flier_icon_token::279621
+Mounted: Icon_-_Mount_1-1_vehicle_icon_token::279826
+Concentration: Icon_-_Concentration_1-1_spell_icon_token::265983
+Shield: Icon_-_Magic_Shield_2-1_marker_icon_token::279721
+Sanctuary: Icon_-_Protection_2-1_marker_icon_token::279623
+Divine Favor: Icon_-_Paladin_1-1_paladin_icon_token::279928
+Dead: death-zone
+
+Some effects intentionally do not need markers:
+
+Dash
+Disengage
+Help
+Hide
+Ready
+Reckless
+Dying
+Deafened
+Exhaustion
+Display cards
+
+!ae update should show two default-template cards:
+
+Action Economy
+Conditions & Effects
+
+PCs get this automatically at the start of their turn.
+
+Any token can use:
+
+!ae update
+
+to produce the cards.
+
+Current V2 script limitation
+
+The current V2 base is not final. It does not yet have the full registry or marker system. It has placeholder effects and conditions stores and simple effect/condition handlers.
+
+The next chat should start by reviewing the V2 script and then implementing the registry cleanly.
