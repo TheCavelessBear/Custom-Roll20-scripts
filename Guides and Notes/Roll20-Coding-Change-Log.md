@@ -1,6 +1,6 @@
 # Roll20 Coding Change Log
 
-Last updated: 2026-08-01
+Last updated: 2026-08-02
 
 ## Purpose
 
@@ -20,7 +20,7 @@ For future updates:
 | --- | --- | --- | --- |
 | LootManager | `LootManager1.1.js` | `LootManager1.0.js` | Experimental Mod sandbox with Beacon `getSheetItem` and `setSheetItem`; optional Jukebox tracks named `grab` and `coins` |
 | ActionEconomyV2 | `ActionEconomyV2.3.2.md` | All earlier AE builds in this log | `AoEBoom1.1.md` and `SaveEffects1.1.md` for corrected Wall of Fire recurring damage |
-| TokenTriggers | `TokenTriggers1.3.1.js` | TokenTriggers 1.0.0 through 1.3 | `AttackDamageResolver1.1.md` for reliable ADR trigger processing; `SaveEffects1.1.md` for reliable SE trigger processing |
+| TokenTriggers | `TokenTriggers1.3.2.js` | TokenTriggers 1.0.0 through 1.3.1 | `ActionEconomyV2.8.2.js` for PC/Ally-aware turn-order removal |
 | AttackDamageResolver | `AttackDamageResolver1.1.md` | Original ADR source | `TokenTriggers1.3.1.md` when Bloodied, Relentless Endurance, or HP 0 triggers are used |
 | SaveEffects | `SaveEffects1.1.md` | Original SaveEffects source | `TokenTriggers1.3.1.md` when TokenTriggers should react to SE damage |
 | AoEBoom | `AoEBoom1.1.md` | Original AoEBoom source | `ActionEconomyV2.3.2.md` and `SaveEffects1.1.md` for corrected directional-hazard saves and damage |
@@ -43,6 +43,59 @@ For future updates:
 - The current `StateWipe.md` predates TokenTriggers and DoorSounds Registry state. Its configured wipe list does not currently include `state.TokenTriggers` or `state.DoorSounds`.
 
 # Change History
+
+## 2026-08-02 - Defeated-token turn order and Bar 1 presentation
+
+### TokenTriggers 1.3.2
+
+File: `TokenTriggers1.3.2.js`
+
+Problem or goal:
+
+- Remove defeated ordinary enemies from initiative without removing AE-registered PCs or Allies, and hide the numerical HP bar while the HP-zero presentation is active.
+
+Changes:
+
+- Uses the existing read-only `ActionEconomyV2API.isFriendlyToken(token)` method to protect AE-registered PCs and Allies. TokenTriggers does not read AE state or maintain a duplicate classification registry.
+- After a valid initial HP-zero activation, removes every turn-order entry matching only the defeated non-friendly token ID while preserving custom entries, all other entry properties, and relative order.
+- Leaves turn order unchanged and logs a concise token-specific warning if the AE API is unavailable, throws, or returns a non-boolean result.
+- Stores the original Bar 1 value, maximum, and blank-state flags in the existing token-specific HP-zero runtime, then defers clearing `bar1_value` and `bar1_max` to the next task so current damage listeners can finish processing the original numeric transition.
+- On sandbox startup, backfills any missing Bar 1 snapshot fields in active pre-1.3.2 HP-zero runtimes and reschedules their corpse Bar 1 clear, covering both in-place upgrades and a reload before the deferred clear executes.
+- Repeated non-positive writes while defeated are reblanked without rerunning the HP-zero presentation, classification, or turn-order removal.
+- Blank-to-positive Bar 1 transitions now enter the existing recovery path. The current positive value is preserved, a current valid maximum is preserved, and the stored maximum is restored only when TokenTriggers left the current maximum blank.
+- Bar 1 restoration occurs even when automatic side/layer restoration is disabled; all existing side, size, rotation, layer, `toBack`, `toFront`, sound, FX, and runtime cleanup behavior remains intact.
+
+ActionEconomyV2 review:
+
+- The active `ActionEconomyV2.8.2.js` already stores PC and Ally registrations by represented character ID and exposes `ActionEconomyV2API.isFriendlyToken(token)`.
+- No ActionEconomyV2 source or version change was required.
+
+Preserved behavior:
+
+- The object-layer targetable corpse presentation, dead side, 1.25 scale, randomized rotation, sound, FX, LootManager targeting, original presentation restoration, Bloodied, Relentless Endurance, commands, registrations, public APIs, other token bars, character linkage, and token GM Notes remain unchanged.
+- LootManager and Bar 1 link configuration are not modified. TokenTriggers does not call Beacon sheet-write APIs for the Bar 1 presentation.
+
+Compatibility:
+
+- Replace active `TokenTriggers1.3.1.js` with `TokenTriggers1.3.2.js`; the unchanged prior build is archived at `Scripts/Prior Versions/TokenTriggers1.3.1.js`.
+- Keep `ActionEconomyV2.8.2.js` installed so TokenTriggers can classify protected combatants. If AE or its API is unavailable, turn-order removal fails safe and the rest of the death presentation continues.
+- Existing TokenTriggers and AE registrations are reused without migration or reconfiguration.
+- No StateWipe, re-registration, LootManager change, or macro replacement is required.
+
+Validation performed:
+
+- JavaScript syntax validation with Node.js.
+- Loaded the complete active ActionEconomyV2 2.8.2 script in a mocked Roll20 runtime and confirmed four PC, Ally, unregistered, and unrepresented `isFriendlyToken` results.
+- A 75-assertion mocked TokenTriggers runtime covered ordinary enemies, PCs, Allies, non-friendly AE Features, unrepresented active-path tokens, duplicate and custom turn-order entries, current-turn removal, classification failure, Bar 1 deferral and re-entrancy, blank-maximum and new-maximum recovery, death/recovery/death, Bars 2-4, LootManager invariants, Relentless Endurance, Bloodied, and malformed turn-order data.
+- A focused seven-assertion persisted-runtime mock confirmed ready-time rescheduling, 1.3.1 snapshot backfill, full Bar 1 clearing, positive-value preservation, stored-maximum restoration, and runtime cleanup.
+- Final read-only Roll20 reviewer pass completed after implementation.
+
+Known limitations:
+
+- Existing TokenTriggers setup and registration remain character-scoped, so a token with no represented character cannot be registered through the current setup menu. The new classification/removal path nevertheless treats an unrepresented token as non-friendly when a valid HP-zero activation reaches it.
+- Turn-order removal naturally fires Roll20's campaign turn-order change event; ActionEconomyV2 then processes the newly exposed turn using its existing behavior.
+- Bar 1 link configuration is intentionally preserved as requested. Roll20 may propagate direct token Bar 1 value/maximum writes through a linked bar; this cannot be verified in the mocked API runtime and should be checked with the campaign's linked Beacon-token configuration before rollout.
+- `HPManager1.1.js` derives its `full` set amount from the token's current `bar1_max`; while the defeated presentation intentionally blanks that maximum, its `full` shortcut resolves to zero. Numeric positive healing, Beacon synchronization, and direct positive Bar 1 updates still enter TokenTriggers restoration normally.
 
 ## 2026-08-01 - Targetable background corpse presentation
 
