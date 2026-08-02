@@ -19,7 +19,7 @@ For future updates:
 | Component | Current build | Replaces | Required companions |
 | --- | --- | --- | --- |
 | HandoutAccess | `HandoutAccess1.1.js` | `HandoutAccess1.0.js` | Load before LootManager when handout loot is used |
-| LootManager | `LootManager1.2.js` | `LootManager1.1.js` | HandoutAccess 1.1 for handout loot; Experimental Mod sandbox with Beacon `getSheetItem` and `setSheetItem`; optional Jukebox tracks named `grab` and `coins` |
+| LootManager | `LootManager1.3.js` | `LootManager1.2.js` | HandoutAccess 1.1 for handout loot; Experimental Mod sandbox with Beacon `getSheetItem` and `setSheetItem`; optional Jukebox tracks named `grab` and `coins` |
 | ActionEconomyV2 | `ActionEconomyV2.3.2.md` | All earlier AE builds in this log | `AoEBoom1.1.md` and `SaveEffects1.1.md` for corrected Wall of Fire recurring damage |
 | TokenTriggers | `TokenTriggers1.3.2.js` | TokenTriggers 1.0.0 through 1.3.1 | `ActionEconomyV2.8.2.js` for PC/Ally-aware turn-order removal |
 | AttackDamageResolver | `AttackDamageResolver1.1.md` | Original ADR source | `TokenTriggers1.3.1.md` when Bloodied, Relentless Endurance, or HP 0 triggers are used |
@@ -34,7 +34,7 @@ For future updates:
 ## Installation and Compatibility Notes
 
 - No build created in this conversation requires a StateWipe unless a future entry expressly says otherwise.
-- Load `HandoutAccess1.1.js` before `LootManager1.2.js` when using `handout:` loot entries. LootManager starts safely without the dependency and reports it only when a handout is taken.
+- Load `HandoutAccess1.1.js` before `LootManager1.3.js` when using `handout:` loot entries. LootManager starts safely without the dependency and reports it only when a handout is taken.
 - Existing AE, TokenTriggers, ADR, SE, and AoEBoom state is normalized or preserved by the current builds.
 - Active Wall of Fire hazards created before installing AE 2.3.2 and AoEBoom 1.1 must be recast. Existing hazard records do not contain the newly stored save configuration.
 - Blood Frenzy requires AE 2.3 or later and TokenTriggers 1.2 or later.
@@ -45,6 +45,39 @@ For future updates:
 - The current `StateWipe.md` predates TokenTriggers and DoorSounds Registry state. Its configured wipe list does not currently include `state.TokenTriggers` or `state.DoorSounds`.
 
 # Change History
+
+## 2026-08-02 - Persistent character keyrings and container keys
+
+### LootManager 1.3
+
+File: `LootManager1.3.js`
+
+Problem or goal:
+
+- Allow linked characters to collect reusable named keys from token GM Notes and use those keys to open configured locked containers without a Sleight of Hand roll.
+
+Changes:
+
+- Initializes and preserves `state.LootManager.keys`, keyed by represented character ID and normalized key name. Names are trimmed, internal whitespace is collapsed, matching is case-insensitive, and repeated pickup does not create a duplicate.
+- Extends the existing LOOT parser, source-order records, cards, stale validation, writer, and delete-when-empty logic with `key-item: Key Name` entries. A linked looter can use `Take Key`; the existing item sound and Loot Taken announcement run only after the source update is verified.
+- Extends container fields with `key: Key Name`. A locked-container card retains its Sleight of Hand button and conditionally adds the generic `Use Key` button only for a selected linked character whose keyring has the required key.
+- Adds the internal key unlock path, which revalidates the source, required key, and current character keyring; writes only `locked: no`; retains the key and required-key field; opens the configured token side; plays the existing successful-opening sound; and displays normal loot without rolling.
+- Adds GM-only `!loot keys` management with pagination, per-character menus, grant, remove, clear-character confirmation, prune, and clear-all confirmation. Missing characters are clearly labeled; prune preserves and normalizes safely migratable key records while removing only missing, empty, or malformed data.
+
+Compatibility:
+
+- Replace active `LootManager1.2.js` with `LootManager1.3.js`; the unchanged prior build is archived at `Scripts/Prior Versions/LootManager1.2.js`.
+- Existing loot entries, handout integration, fixed and inline gp, Beacon gp handling, containers, sounds, commands, token GM Notes encoding, and the universal player macro remain compatible.
+- No StateWipe, migration, macro replacement, Beacon inventory change, or change to HandoutAccess is required. Existing LootManager configuration is preserved.
+
+Validation performed:
+
+- JavaScript syntax validation with Node.js.
+- Mocked Roll20 integration coverage for linked and unlinked key pickup, duplicate and whitespace-normalized keys, character-isolated keyrings, key-card visibility, key unlocks without rolls, key reuse, stale key and container requirements, already-unlocked containers, final-key deletion settings, GM menu pagination and mutations, pruning, clear-all configuration preservation, restart persistence, and GM Notes preservation.
+
+Known limitations:
+
+- Keyring data intentionally lives in `state.LootManager.keys`; deleting Roll20 Mod state outside LootManager removes those keyrings. `!loot keys prune` normalizes safely migratable records and removes only missing-character, empty, and malformed records; it does not remove keys simply because a character has no current token or is inactive.
 
 ## 2026-08-02 - Name-based handout loot integration
 
