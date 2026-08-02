@@ -1,6 +1,6 @@
 # Roll20 Coding Change Log
 
-Last updated: 2026-07-20
+Last updated: 2026-08-01
 
 ## Purpose
 
@@ -18,6 +18,7 @@ For future updates:
 
 | Component | Current build | Replaces | Required companions |
 | --- | --- | --- | --- |
+| LootManager | `LootManager1.1.js` | `LootManager1.0.js` | Experimental Mod sandbox with Beacon `getSheetItem` and `setSheetItem`; optional Jukebox tracks named `grab` and `coins` |
 | ActionEconomyV2 | `ActionEconomyV2.3.2.md` | All earlier AE builds in this log | `AoEBoom1.1.md` and `SaveEffects1.1.md` for corrected Wall of Fire recurring damage |
 | TokenTriggers | `TokenTriggers1.3.1.md` | TokenTriggers 1.0.0 through 1.3 | `AttackDamageResolver1.1.md` for reliable ADR trigger processing; `SaveEffects1.1.md` for reliable SE trigger processing |
 | AttackDamageResolver | `AttackDamageResolver1.1.md` | Original ADR source | `TokenTriggers1.3.1.md` when Bloodied, Relentless Endurance, or HP 0 triggers are used |
@@ -42,6 +43,104 @@ For future updates:
 - The current `StateWipe.md` predates TokenTriggers and DoorSounds Registry state. Its configured wipe list does not currently include `state.TokenTriggers` or `state.DoorSounds`.
 
 # Change History
+
+## 2026-08-01 - Locked containers and one-time rolled gold
+
+### LootManager 1.1
+
+File: `LootManager1.1.js`
+
+Problem or goal:
+
+- Extend the existing LootManager with locked/unlocked multi-sided containers and one-time inline-roll gold resolution without redesigning its current loot, card, pickup, sound, state, or Beacon systems.
+
+Changes:
+
+- Added the universal player command `!loot LOOTER_TOKEN_ID TARGET_TOKEN_ID`, supporting the macro `!loot @{selected|token_id} @{target|Loot|token_id}` while preserving all existing `!loot inspect`, generated take, configuration, help, and public API behavior.
+- Added case-insensitive, trimmed `type`, `locked`, `lock-dc`, `closed-side`, and `open-side` fields stored only in the token's existing `LOOT` block.
+- Locked inspection now selects the configured closed side when valid, hides every loot detail, performs no roll, leaves inline gold unresolved, and presents an embedded `Perform Sleight of Hand Check` button.
+- Added `!loot unlock-check LOOTER_TOKEN_ID CONTAINER_TOKEN_ID`, using awaited Beacon `getSheetItem(characterId, "sleight_of_hand_bonus")` and Roll20's inline-roll engine for the natural d20.
+- Failed checks retain `locked: yes`, keep the closed side, reveal and resolve no loot, store no attempt history, and provide a retry button.
+- Successful checks change only the applicable lock field to `locked: no`, select the configured open side when valid, play the configured item/opening sound, resolve rolled gold, and immediately show the existing loot card.
+- Added validated one-based side selection for any multi-sided token. Missing, invalid, out-of-range, non-multi-sided, or unusable side images warn the GM without blocking inspection or unlocking.
+- Added `gp: [[expression]]` and `[[expression]] gp` parsing. Expressions resolve through Roll20's inline-roll engine only when loot is first revealed, are persisted as fixed `gp: total` lines before card display, and never reroll after successful persistence.
+- Extended the existing GM Notes parser and writer with source-order records so lock changes, resolved gold, item quantities, comments, container fields, and unrelated GM Notes remain preserved through every write.
+- Resolved gold continues through the single existing fixed-GP transfer path. The take announcement now includes both the amount taken and the receiving character's confirmed new GP total.
+- Multiple fixed and inline GP lines retain the existing aggregate currency-card and take workflow; every unresolved line is resolved and persisted individually before display.
+
+Preserved behavior:
+
+- Loose-item deletion, linked body loot, item syntax and quantities, stale-button validation, pickup buttons, default-template cards, item and coin sounds, delete-when-empty configuration, transient transfer locks, public `LootManager.inspect(tokenId)`, and state configuration remain intact.
+- Loot, lock state, rolled amounts, and failed attempts are not stored in Roll20 state or custom attributes.
+- No legacy attribute lookup or Beacon inventory access was added.
+
+Compatibility:
+
+- Replace active `LootManager1.0.js` with `LootManager1.1.js`; the unchanged 1.0 build is archived at `Scripts/Prior Versions/LootManager1.0.js`.
+- The universal player macro is `!loot @{selected|token_id} @{target|Loot|token_id}`.
+- No StateWipe or data migration is required. Existing LOOT blocks, commands, generated buttons, and configuration remain compatible.
+- Container opening reuses the existing configured item sound (`grab` by default); no new sound configuration or state field is required.
+
+Validation performed:
+
+- JavaScript syntax validation with the bundled Node.js runtime.
+- Three mocked Roll20 runtime harnesses with 73 assertions covered unlocked and locked inspection, success and failure, retries, already-unlocked buttons, valid and invalid multi-sides, one-time canonical and alternate inline GP, atomic multiple-expression failure, multiple rolled GP lines, roll failure, GM Notes write verification failure, fixed and resolved GP transfer, new-total announcement, sounds, item quantities, stale buttons, loose-item deletion, delete-when-empty on/off, linked no-block bodies, the public API, and preservation inside and outside the LOOT block.
+- Final read-only Roll20 reviewer pass completed after implementation.
+
+Known limitations:
+
+- Gold remains a non-negative safe whole-number aggregate; multiple GP lines do not become separately takeable slots.
+- Items are announced and removed from the source but are not added to Beacon inventory.
+- Container side changes require Roll20-compatible multi-sided token image URLs; invalid side configuration warns the GM and the loot action continues.
+
+## 2026-08-01 - Token GM Notes loot management
+
+### LootManager 1.0
+
+File: `LootManager1.0.js`
+
+Problem or goal:
+
+- Add standalone player-facing loot inspection and collection without storing loot contents in Roll20 state or modifying Beacon inventory.
+
+Changes:
+
+- Reads structured `LOOT` through `END LOOT` blocks from linked creature tokens and unlinked containers.
+- Supports `gp: amount`, `item: name`, and `item: name | quantity` entries.
+- Preserves GM Notes outside the matched loot block verbatim and preserves unrecognized lines inside the block.
+- Adds whispered inspect cards, item and currency take buttons, quantity reduction, take-all controls, and stale-button validation against current token GM Notes.
+- Adds Beacon currency delivery through awaited `getSheetItem(characterId, "gp")` and `setSheetItem(characterId, "gp", value)` calls.
+- Verifies Beacon gp writes with immediate and delayed readback before consuming source currency.
+- Does not use legacy attributes and does not modify Beacon inventory.
+- Treats an unlinked token without a loot block as one loose item named from the token and deletes it when taken; linked tokens without a block report no loot.
+- Adds direct Jukebox playback with default item track `grab` and default currency track `coins`.
+- Stores only persistent configuration in `state.LootManager`: delete-when-empty, item sound, and currency sound. Loot, claims, and quantities remain exclusively in token GM Notes.
+- Adds GM configuration commands for sound names and delete-when-empty behavior.
+- Uses temporary in-memory source-token and recipient-character processing locks so overlapping async currency clicks cannot both pass stale validation or overwrite the same Beacon gp balance; the locks store no loot and are not persisted.
+
+Preserved behavior:
+
+- No ActionEconomyV2, SaveEffects, AttackDamageResolver, HPManager, TokenTriggers, token-bar, or Beacon inventory behavior is changed.
+- Loot access does not use ownership checks, player restrictions, claim IDs, or a transaction subsystem.
+
+Compatibility:
+
+- Requires the Experimental Mod sandbox Beacon helpers for gp transfer.
+- Optional Jukebox tracks should be named `grab` and `coins`, or configured with `!loot config`.
+- No StateWipe, migration, re-registration, macro replacement, or recast is required.
+
+Validation performed:
+
+- JavaScript syntax validation with Node.js.
+- A mocked Roll20 runtime harness covered HTML-backed, percent-encoded, and URL-encoded HTML GM Notes; exact outside-block preservation; item quantity reduction; stale and overlapping-button rejection; verified Beacon gp transfer; loose-item deletion; linked no-block handling; configuration; and delete-when-empty behavior.
+- Static review of command routing, GM Notes replacement boundaries, Beacon async calls, stale-button checks, linked/unlinked behavior, configuration persistence, sound routing, and token deletion paths.
+
+Known limitations:
+
+- Items are announced and removed from the loot source but are not added to Beacon inventory.
+- GP and quantities must be non-negative whole numbers.
+- Currency buttons require the player to select a token linked to the receiving Beacon character.
+- Jukebox track names are exact and case-sensitive.
 
 ## 2026-07-20 - Wall of Fire recurring damage and SaveEffects trigger integration
 
