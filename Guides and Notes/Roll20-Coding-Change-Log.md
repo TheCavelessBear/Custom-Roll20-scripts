@@ -20,7 +20,7 @@ For future updates:
 | --- | --- | --- | --- |
 | LootManager | `LootManager1.1.js` | `LootManager1.0.js` | Experimental Mod sandbox with Beacon `getSheetItem` and `setSheetItem`; optional Jukebox tracks named `grab` and `coins` |
 | ActionEconomyV2 | `ActionEconomyV2.3.2.md` | All earlier AE builds in this log | `AoEBoom1.1.md` and `SaveEffects1.1.md` for corrected Wall of Fire recurring damage |
-| TokenTriggers | `TokenTriggers1.3.1.md` | TokenTriggers 1.0.0 through 1.3 | `AttackDamageResolver1.1.md` for reliable ADR trigger processing; `SaveEffects1.1.md` for reliable SE trigger processing |
+| TokenTriggers | `TokenTriggers1.3.1.js` | TokenTriggers 1.0.0 through 1.3 | `AttackDamageResolver1.1.md` for reliable ADR trigger processing; `SaveEffects1.1.md` for reliable SE trigger processing |
 | AttackDamageResolver | `AttackDamageResolver1.1.md` | Original ADR source | `TokenTriggers1.3.1.md` when Bloodied, Relentless Endurance, or HP 0 triggers are used |
 | SaveEffects | `SaveEffects1.1.md` | Original SaveEffects source | `TokenTriggers1.3.1.md` when TokenTriggers should react to SE damage |
 | AoEBoom | `AoEBoom1.1.md` | Original AoEBoom source | `ActionEconomyV2.3.2.md` and `SaveEffects1.1.md` for corrected directional-hazard saves and damage |
@@ -43,6 +43,46 @@ For future updates:
 - The current `StateWipe.md` predates TokenTriggers and DoorSounds Registry state. Its configured wipe list does not currently include `state.TokenTriggers` or `state.DoorSounds`.
 
 # Change History
+
+## 2026-08-01 - Targetable background corpse presentation
+
+### TokenTriggers 1.3.1
+
+File: `TokenTriggers1.3.1.js`
+
+Problem or goal:
+
+- The existing `moveToMapLayer` HP-zero presentation moved dead enemies to Roll20's Map & Background layer, preventing players from supplying the corpse token ID through LootManager's `@{target|...}` workflow.
+
+Changes:
+
+- Reinterpreted the existing enabled `moveToMapLayer` option without renaming its command or stored field: the dead token is enlarged and rotated as before, placed on the `objects` layer, and sent behind other object-layer tokens with `toBack(token)`.
+- Added guarded `toBack(token)` failure handling so the dead-side, size, rotation, and targetable Objects-layer placement remain applied while the GM receives a concise warning.
+- Restoration still returns the original side, width, height, rotation, and layer. Restored object-layer tokens are then brought to the front with guarded `toFront(token)` handling; non-object original layers are restored without being forced to `objects`.
+- Updated setup, registry, and validation wording to describe the option as `Background Corpse Presentation` while preserving `!tokentrigger maplayer TOKEN_ID on/off` and `moveToMapLayer` state compatibility.
+- Updated the built-in HP-zero presentation test to use the same restoration helper as live and manual restoration.
+
+Preserved behavior:
+
+- HP-zero detection, duplicate prevention, dead-side selection, sound, FX, the 1.25 corpse scale, randomized rotation, runtime cleanup, Bloodied, Relentless Endurance, commands, public APIs, token bars, character linkage, token GM Notes, and all cross-script ownership remain unchanged.
+- LootManager and its universal macro were not modified.
+
+Compatibility:
+
+- Replace active `TokenTriggers1.3.js` with `TokenTriggers1.3.1.js`; the unchanged prior build is archived at `Scripts/Prior Versions/TokenTriggers1.3.js`.
+- Existing registrations and `state.TokenTriggers` data are reused without migration or reconfiguration.
+- No StateWipe, LootManager change, macro replacement, or registration migration is required.
+
+Validation performed:
+
+- JavaScript syntax validation with Node.js.
+- Mocked Roll20 runtime tests covered HP-zero activation, dead side, sound and FX calls, 1.25 scaling, randomized rotation, Objects-layer placement, `toBack`, targetability prerequisites, positive-HP restoration, non-object original-layer restoration, duplicate zero transitions, healing and death again, `toBack` and `toFront` failures, and Bloodied/Relentless Endurance regression behavior.
+- Final read-only Roll20 reviewer pass completed after implementation.
+
+Known limitations:
+
+- Roll20 does not expose a stable arbitrary Z-order index, so revived object-layer tokens are intentionally brought to the front rather than restored to an exact former stack position.
+- A corpse sent behind other tokens may require clicking an exposed portion or using Roll20's target-selection behavior.
 
 ## 2026-08-01 - Locked containers and one-time rolled gold
 
