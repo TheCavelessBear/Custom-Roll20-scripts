@@ -18,7 +18,8 @@ For future updates:
 
 | Component | Current build | Replaces | Required companions |
 | --- | --- | --- | --- |
-| LootManager | `LootManager1.1.js` | `LootManager1.0.js` | Experimental Mod sandbox with Beacon `getSheetItem` and `setSheetItem`; optional Jukebox tracks named `grab` and `coins` |
+| HandoutAccess | `HandoutAccess1.1.js` | `HandoutAccess1.0.js` | Load before LootManager when handout loot is used |
+| LootManager | `LootManager1.2.js` | `LootManager1.1.js` | HandoutAccess 1.1 for handout loot; Experimental Mod sandbox with Beacon `getSheetItem` and `setSheetItem`; optional Jukebox tracks named `grab` and `coins` |
 | ActionEconomyV2 | `ActionEconomyV2.3.2.md` | All earlier AE builds in this log | `AoEBoom1.1.md` and `SaveEffects1.1.md` for corrected Wall of Fire recurring damage |
 | TokenTriggers | `TokenTriggers1.3.2.js` | TokenTriggers 1.0.0 through 1.3.1 | `ActionEconomyV2.8.2.js` for PC/Ally-aware turn-order removal |
 | AttackDamageResolver | `AttackDamageResolver1.1.md` | Original ADR source | `TokenTriggers1.3.1.md` when Bloodied, Relentless Endurance, or HP 0 triggers are used |
@@ -33,6 +34,7 @@ For future updates:
 ## Installation and Compatibility Notes
 
 - No build created in this conversation requires a StateWipe unless a future entry expressly says otherwise.
+- Load `HandoutAccess1.1.js` before `LootManager1.2.js` when using `handout:` loot entries. LootManager starts safely without the dependency and reports it only when a handout is taken.
 - Existing AE, TokenTriggers, ADR, SE, and AoEBoom state is normalized or preserved by the current builds.
 - Active Wall of Fire hazards created before installing AE 2.3.2 and AoEBoom 1.1 must be recast. Existing hazard records do not contain the newly stored save configuration.
 - Blood Frenzy requires AE 2.3 or later and TokenTriggers 1.2 or later.
@@ -43,6 +45,39 @@ For future updates:
 - The current `StateWipe.md` predates TokenTriggers and DoorSounds Registry state. Its configured wipe list does not currently include `state.TokenTriggers` or `state.DoorSounds`.
 
 # Change History
+
+## 2026-08-02 - Name-based handout loot integration
+
+### HandoutAccess 1.1 and LootManager 1.2
+
+Files: `HandoutAccess1.1.js`, `LootManager1.2.js`
+
+Problem or goal:
+
+- Allow token GM Notes loot blocks to name a handout directly and grant the clicking player access when that handout is taken, without exposing handout IDs or modifying Beacon inventory.
+
+Changes:
+
+- HandoutAccess 1.1 adds the synchronous `HandoutAccess.revealByReference(handoutReference, recipientReference, options)` public API. It reuses the existing exact case-insensitive, trimmed handout resolver, including duplicate-name rejection, and preserves the existing recipient, permission, link, announcement, and `reveal`/`hide` behavior.
+- LootManager 1.2 recognizes `handout: Handout Name` records in the existing `LOOT` parser and serializer. Each line has source-order identity for stale-button validation and appears as a separate `Take and Read` card button.
+- On a valid click, LootManager re-reads and validates the source record, calls HandoutAccess for `msg.playerid` with `announce: true`, then removes only that line using the existing GM Notes writer. Items, gp, fields, invalid preserved lines, and GM Notes outside the block remain unchanged.
+- Locked containers keep handout names hidden. Handouts count as available loot for delete-when-empty and use the existing item pickup sound and Loot Taken announcement after a verified successful source update.
+- HandoutAccess failures, missing dependencies, missing names, duplicate names, and stale buttons leave the source entry intact. If permission is granted but the GM Notes rewrite cannot be verified, LootManager reports the partial success without sound or pickup announcement.
+
+Compatibility:
+
+- Replace active `HandoutAccess1.0.js` with `HandoutAccess1.1.js` and active `LootManager1.1.js` with `LootManager1.2.js`. The unchanged prior builds are archived at `Scripts/Prior Versions/HandoutAccess1.0.js` and `Scripts/Prior Versions/LootManager1.1.js`.
+- Existing HandoutAccess commands, ID-based API callers, LootManager commands, token classifications, item entries, fixed and inline gp, container settings, sounds, Beacon gp handling, and GM Notes encoding remain compatible.
+- Load HandoutAccess before LootManager, or ensure it is available before a player takes a handout. No StateWipe, migration, macro replacement, or Beacon inventory change is required.
+
+Validation performed:
+
+- JavaScript syntax validation with Node.js for both revised scripts.
+- Mocked Roll20 integration coverage for name and ID resolution, case-insensitive lookup, missing and duplicate names, already-granted access, permission preservation, mixed loot preservation, multiple handouts, stale buttons, locked-container privacy, missing dependency, missing and duplicate handout failures, delete-when-empty, and permission-granted/GM-Notes-write-failure behavior.
+
+Known limitation:
+
+- HandoutAccess grants permission before LootManager writes the consumed source line. If that GM Notes write fails, the player retains access while the physical handout entry remains; the scripts report this partial success and do not claim atomic rollback.
 
 ## 2026-08-02 - Defeated-token turn order and Bar 1 presentation
 
