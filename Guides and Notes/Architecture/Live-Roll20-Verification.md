@@ -60,7 +60,7 @@ Verify with representative GM and player accounts:
 ## Current Required Live Investigations
 
 1. Confirm the live API-script panel contains the same 43 individual files in the registry order and contains no combined batch, archive, or obsolete duplicate.
-2. In the API sandbox, inspect whether `TokenTriggersAPI` exists and exposes `processBar1Change` after startup. Evidence gap: ADR/SE call it, but the active TokenTriggers source exports `TokenTriggers` instead.
+2. Confirm `TokenTriggersAPI.processBar1Change` exists after startup, then exercise ADR and SaveEffects damage with both observed native-event orderings. Expected: each Bar 1 transition produces one TokenTriggers result, and a TokenTriggers-adjusted final HP is the value returned to the caller. Record the actual Roll20 event and Beacon synchronization order.
 3. Restart the sandbox and confirm the meta-toolchain globals register in order: MathOps/Plugger/libTable/Muler/SelectManager/VectorMath/MatrixMath/libInline/PathMath/checkLightLevel/libTokenMarkers/Messenger/Fetch/TurnMarker/APILogic/ZeroFrame/MetaScriptToolbox.
 
 Record results as a dated report under `Guides and Notes/Audits/`. Link confirmed durable contracts back into the registries; do not make the audit itself the source of truth.

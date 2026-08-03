@@ -21,7 +21,7 @@ For future updates:
 | HandoutAccess | `HandoutAccess1.1.js` | `HandoutAccess1.0.js` | Load before LootManager when handout loot is used |
 | LootManager | `LootManager1.3.js` | `LootManager1.2.js` | HandoutAccess 1.1 for handout loot; Experimental Mod sandbox with Beacon `getSheetItem` and `setSheetItem`; optional Jukebox tracks named `grab` and `coins` |
 | ActionEconomyV2 | `ActionEconomyV2.3.2.md` | All earlier AE builds in this log | `AoEBoom1.1.md` and `SaveEffects1.1.md` for corrected Wall of Fire recurring damage |
-| TokenTriggers | `TokenTriggers1.3.2.js` | TokenTriggers 1.0.0 through 1.3.1 | `ActionEconomyV2.8.2.js` for PC/Ally-aware turn-order removal |
+| TokenTriggers | `TokenTriggers1.3.3.js` | TokenTriggers 1.0.0 through 1.3.2 | `ActionEconomyV2.8.2.js` for PC/Ally-aware turn-order removal; ADR/SaveEffects may call the generic threshold API |
 | AttackDamageResolver | `AttackDamageResolver1.1.md` | Original ADR source | `TokenTriggers1.3.1.md` when Bloodied, Relentless Endurance, or HP 0 triggers are used |
 | SaveEffects | `SaveEffects1.1.md` | Original SaveEffects source | `TokenTriggers1.3.1.md` when TokenTriggers should react to SE damage |
 | AoEBoom | `AoEBoom1.1.md` | Original AoEBoom source | `ActionEconomyV2.3.2.md` and `SaveEffects1.1.md` for corrected directional-hazard saves and damage |
@@ -45,6 +45,40 @@ For future updates:
 - The current `StateWipe.md` predates TokenTriggers and DoorSounds Registry state. Its configured wipe list does not currently include `state.TokenTriggers` or `state.DoorSounds`.
 
 # Change History
+
+## 2026-08-03 - TokenTriggers ADR/SaveEffects compatibility API restoration
+
+### TokenTriggers 1.3.3
+
+File: `TokenTriggers1.3.3.js`
+
+Problem or goal:
+
+- Restore the generic TokenTriggers integration point already called optionally by AttackDamageResolver and SaveEffects, without adding TokenTriggers feature knowledge or duplicate threshold logic to either damage owner.
+
+Changes:
+
+- Added `TokenTriggersAPI.processBar1Change(token, oldHp, newHp)`, which returns the final numeric Bar 1 value after TokenTriggers-owned processing.
+- Routed the public API and native `change:graphic:bar1_value` handler through the same existing HP-zero, Bloodied, and Relentless Endurance processing order.
+- Added a short-lived, token-scoped transition record so the explicit hook and native event return one resolved result without processing the same transition twice, including either controlled ordering.
+- Preserved the existing `TokenTriggers` configuration API, commands, state namespace, Beacon boundaries, and unrepresented-token behavior. No AttackDamageResolver or SaveEffects production file was changed.
+
+Compatibility and migration:
+
+- Replace active `TokenTriggers1.3.2.js` with `TokenTriggers1.3.3.js`; the unchanged prior build is archived at `Scripts/Prior Versions/TokenTriggers1.3.2.js`.
+- Existing TokenTriggers registrations and `state.TokenTriggers` data are reused without migration or reconfiguration.
+- No StateWipe, macro replacement, ADR revision, SaveEffects revision, or Beacon attribute change is required for this compatibility restoration.
+
+Validation performed:
+
+- `node --check Scripts/TokenTriggers1.3.3.js` passed.
+- The complete dependency-free local suite passed 19 of 19 tests, including all 43 active scripts loading together, the public API contract, generic ADR and SaveEffects calls, both controlled explicit/native ordering cases, one-result duplicate suppression, Relentless Endurance, HP-zero presentation and blank-to-positive recovery, rejection of unknown ordinary Bloodied transitions, linked/unlinked token boundaries, healing isolation, undo, and AE handoffs.
+- The separate all-active-scripts load command passed 4 of 4 startup/global/handler tests.
+
+Known limitations:
+
+- The local scheduler proves the controlled order matrix, not Roll20's actual native-event or Beacon sheet-worker timing; the dedicated live Test Game checklist remains required.
+- SaveEffects consumes the API's returned final HP before its Beacon write. AttackDamageResolver currently writes Beacon HP before calling the API and ignores the returned value, so a TokenTriggers adjustment such as Relentless Endurance may leave a linked Beacon value at ADR's earlier calculated HP until Roll20 synchronization resolves it. Correcting that ordering is a separate ADR revision and is not included here.
 
 ## 2026-08-03 - Individual active-script migration and integration registry
 

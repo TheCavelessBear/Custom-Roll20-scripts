@@ -4,7 +4,7 @@
 // Order, owned globals, and the small set of active-source overwrites are
 // explicit so additions and collisions cannot be silently accepted.
 const files = [
-  'GroupInitiative.js', 'SimpleSound.js', 'TokenMod.js', 'ScriptCards.js', 'MathOps.js', 'Plugger.js', 'libTable.js', 'Muler.js', 'SelectManager.js', 'VectorMath.js', 'MatrixMath.js', 'libInline.js', 'PathMath.js', 'checkLightLevel.js', 'libTokenMarkers.js', 'Messenger.js', 'SmartAoE.js', 'DoorSounds.js', 'Fetch.js', 'TurnMarker1.js', 'APILogic.js', 'ActionEconomyV2.8.2.js', 'ZeroFrame.js', 'SaveEffects1.3.js', 'MetaScriptToolbox.js', 'Executioner.js', 'HPManager1.1.js', 'Auras.js', 'AttackDamageResolver1.3.js', 'SpawnDefaultTokenV1.1.2.js', 'Dismiss.js', 'AoEBoom1.1.2.js', 'MapChange.js', 'TokenActionBuilder0.4.0.js', 'Audit.js', 'StateWipe.js', 'BeaconAttributeTester.js', 'DoorControl.js', 'TokenTriggers1.3.2.js', 'TokenAnimator1.3.js', 'HandoutAccess1.1.js', 'TargetReport1.0.js', 'LootManager1.3.js'
+  'GroupInitiative.js', 'SimpleSound.js', 'TokenMod.js', 'ScriptCards.js', 'MathOps.js', 'Plugger.js', 'libTable.js', 'Muler.js', 'SelectManager.js', 'VectorMath.js', 'MatrixMath.js', 'libInline.js', 'PathMath.js', 'checkLightLevel.js', 'libTokenMarkers.js', 'Messenger.js', 'SmartAoE.js', 'DoorSounds.js', 'Fetch.js', 'TurnMarker1.js', 'APILogic.js', 'ActionEconomyV2.8.2.js', 'ZeroFrame.js', 'SaveEffects1.3.js', 'MetaScriptToolbox.js', 'Executioner.js', 'HPManager1.1.js', 'Auras.js', 'AttackDamageResolver1.3.js', 'SpawnDefaultTokenV1.1.2.js', 'Dismiss.js', 'AoEBoom1.1.2.js', 'MapChange.js', 'TokenActionBuilder0.4.0.js', 'Audit.js', 'StateWipe.js', 'BeaconAttributeTester.js', 'DoorControl.js', 'TokenTriggers1.3.3.js', 'TokenAnimator1.3.js', 'HandoutAccess1.1.js', 'TargetReport1.0.js', 'LootManager1.3.js'
 ];
 
 const scripts = files.map((file) => ({ file, ownedGlobals: [], allowedOverwrites: [], bindingPhases: {} }));
@@ -38,7 +38,7 @@ const adrGlobals = ['cacheDamageRoll', 'cacheDefaultTemplateDamageRoll', 'handle
 // Confirmed active-source legacy collisions. They remain visible and bounded;
 // they are not public API endorsements.
 own('AttackDamageResolver1.3.js', adrGlobals, ['getAeModifiedDamage', 'processTokenTriggersBar1Change', 'replaceInlineRolls']);
-own('SpawnDefaultTokenV1.1.2.js', ['SpawnDefaultToken']); own('Dismiss.js', []); own('AoEBoom1.1.2.js', ['AoEBoom']); own('MapChange.js', ['MapChange']); own('TokenActionBuilder0.4.0.js', ['TokenActionBuilder']); own('Audit.js', ['CachedStateAudit']); own('StateWipe.js', ['PersistentStateManager']); own('BeaconAttributeTester.js', ['BeaconAttributeTester']); own('DoorControl.js', []); own('TokenTriggers1.3.2.js', ['TokenTriggers']); own('TokenAnimator1.3.js', ['TokenAnimator']); own('HandoutAccess1.1.js', ['HandoutAccess']); own('TargetReport1.0.js', []); own('LootManager1.3.js', ['LootManager']);
+own('SpawnDefaultTokenV1.1.2.js', ['SpawnDefaultToken']); own('Dismiss.js', []); own('AoEBoom1.1.2.js', ['AoEBoom']); own('MapChange.js', ['MapChange']); own('TokenActionBuilder0.4.0.js', ['TokenActionBuilder']); own('Audit.js', ['CachedStateAudit']); own('StateWipe.js', ['PersistentStateManager']); own('BeaconAttributeTester.js', ['BeaconAttributeTester']); own('DoorControl.js', []); own('TokenTriggers1.3.3.js', ['TokenTriggers', 'TokenTriggersAPI']); own('TokenAnimator1.3.js', ['TokenAnimator']); own('HandoutAccess1.1.js', ['HandoutAccess']); own('TargetReport1.0.js', []); own('LootManager1.3.js', ['LootManager']);
 
 const fn = (...names) => Object.fromEntries(names.map((name) => [name, 'function']));
 const publicApis = [
@@ -57,6 +57,7 @@ const publicApis = [
   { global: 'SaveEffectsAPI', type: 'object', members: fn('rollSave') }, { global: 'SpawnDefaultToken', type: 'object', members: fn('spawnAtXY') },
   { global: 'AoEBoom', type: 'object', members: { version: 'string' } }, { global: 'MapChange', type: 'object', members: fn('ConstructMaps', 'RegisterEventHandlers', 'CheckInstall') },
   { global: 'TokenTriggers', type: 'object', members: fn('getHpZeroConfig', 'triggerHpZero', 'restoreToken', 'getBloodiedConfig', 'getRelentlessEnduranceConfig', 'queueBloodied') },
+  { global: 'TokenTriggersAPI', type: 'object', members: fn('processBar1Change') },
   { global: 'TokenAnimator', type: 'object', members: {} }, { global: 'HandoutAccess', type: 'object', members: fn('reveal', 'hide', 'revealByReference') }, { global: 'LootManager', type: 'object', members: fn('inspect') }
 ];
 
@@ -79,7 +80,7 @@ Object.assign(handlerContracts, {
   'SpawnDefaultTokenV1.1.2.js': { ready: 1, 'chat:message': 1 }, 'Dismiss.js': { 'chat:message': 1 }, 'AoEBoom1.1.2.js': { ready: 1, 'chat:message': 1, 'change:graphic': 1 },
   'MapChange.js': { ready: 1, 'chat:message': 1 }, 'TokenActionBuilder0.4.0.js': { ready: 1, 'chat:message': 1 }, 'Audit.js': { ready: 1, 'chat:message': 1 },
   'StateWipe.js': { ready: 1, 'chat:message': 1 }, 'BeaconAttributeTester.js': { ready: 1, 'chat:message': 1 }, 'DoorControl.js': { ready: 1, 'chat:message': 1 },
-  'TokenTriggers1.3.2.js': { ready: 1, 'chat:message': 1, 'change:campaign:turnorder': 1, 'change:graphic:bar1_value': 1, 'destroy:character': 1, 'destroy:graphic': 1 },
+  'TokenTriggers1.3.3.js': { ready: 1, 'chat:message': 1, 'change:campaign:turnorder': 1, 'change:graphic:bar1_value': 1, 'destroy:character': 1, 'destroy:graphic': 1 },
   'TokenAnimator1.3.js': { ready: 1, 'chat:message': 1, 'destroy:graphic': 1 }, 'HandoutAccess1.1.js': { ready: 1, 'chat:message': 1 },
   'TargetReport1.0.js': { ready: 1, 'chat:message': 1 }, 'LootManager1.3.js': { ready: 1, 'chat:message': 1 }
 });

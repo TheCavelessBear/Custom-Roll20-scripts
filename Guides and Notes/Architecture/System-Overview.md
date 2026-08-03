@@ -45,5 +45,5 @@ The 43 active scripts execute inside Roll20's API sandbox in the order recorded 
 
 ## Current Requires Verification Items
 
-- AttackDamageResolver and SaveEffects call `TokenTriggersAPI.processBar1Change`, but `Scripts/TokenTriggers1.3.2.js` exposes a `TokenTriggers` object and no matching `TokenTriggersAPI` export was found. The runtime source of that API requires verification.
+- `Scripts/TokenTriggers1.3.3.js` exposes the generic `TokenTriggersAPI.processBar1Change` hook used by AttackDamageResolver and SaveEffects. Live verification must still establish Roll20's native-event ordering and confirm each transition processes once.
 - The exact order is user-confirmed and documented, but the live API-script panel and startup log remain the required evidence that all 43 files are enabled with no external or obsolete uploads.

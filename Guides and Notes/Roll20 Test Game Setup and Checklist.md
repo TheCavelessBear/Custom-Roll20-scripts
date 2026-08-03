@@ -73,8 +73,9 @@ Expected: HP is capped at maximum and mirrors through the represented-token path
 6. Change Bar 2 only; confirm Relentless Endurance does not activate. Then reduce Bar 1 from a positive value to 0.
 7. Confirm Bar 1 becomes 1 and one `Reduced to 1 HP instead of falling.` card appears. Repeat the transition in the same combat and confirm the once-per-combat runtime prevents another activation.
 8. Reset with `!tokentrigger relentlessreset TOKEN_ID`, restore the token bars, and repeat once to prove the reset.
+9. Repeat one configured threshold transition through ADR and one through SaveEffects. Observe sandbox logs/event order and confirm each produces one TokenTriggers card/state change, not one from the explicit API plus another from the native Bar 1 event.
 
-Expected: ordinary configured HP-zero behavior stores and clears its presentation through the verified enable/restore commands; Relentless Endurance separately intercepts the represented token at 1 HP once per combat; generic unrepresented tokens are ignored.
+Expected: ordinary configured HP-zero behavior stores and clears its presentation through the verified enable/restore commands; Relentless Endurance separately intercepts the represented token at 1 HP once per combat; ADR and SaveEffects use the same generic TokenTriggers hook without owning threshold mechanics; generic unrepresented tokens are ignored.
 
 ### SaveEffects and ActionEconomy
 

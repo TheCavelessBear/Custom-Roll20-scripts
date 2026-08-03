@@ -15,10 +15,12 @@ Run it with `npm.cmd test` from this directory on Windows, or `node run-tests.js
 - SaveEffects damage application and its lethal AE handoff without SaveEffects taking AE condition ownership;
 - TokenTriggers' bar-1 subscription and its confirmed unrepresented-token guard;
 - ordinary represented-token HP-zero presentation through `!tokentrigger enable TOKEN_ID`, including dead-side selection, Bar 1 clearing, and restore;
+- blank-to-positive Bar 1 recovery after the HP-zero presentation clears the defeated token's displayed value;
 - configured represented-token Relentless Endurance through `!tokentrigger relentlessenable TOKEN_ID`;
+- the generic `TokenTriggersAPI.processBar1Change(token, oldHp, newHp)` calls made by ADR and SaveEffects;
+- explicit-hook-first and native-event-first duplicate suppression for one TokenTriggers-owned Bar 1 transition;
 - ADR damage undo across owned bars and represented Beacon current/max writes;
-- represented Beacon-PC and unlinked-NPC bar behavior; and
-- the current `TokenTriggersAPI` mismatch: the active files expose `TokenTriggers`, while ADR and SaveEffects only make an optional call to `TokenTriggersAPI.processBar1Change`.
+- represented Beacon-PC and unlinked-NPC bar behavior.
 
 Every scenario includes a source/registry evidence comment. The active files and the Architecture registry remain the technical source of truth; the manifest makes the test load order, global ownership, allowed legacy overwrites, typed public APIs, and handler owners explicit. ScriptCards is an active-source async IIFE: the local contract awaits its Promise and validates the resolved `ObserveTokenChange` function. Direct synchronous `ScriptCards.ObserveTokenChange` availability remains a current integration limitation that requires live verification; the harness does not replace or alias the global.
 
@@ -34,8 +36,8 @@ Generated local output belongs only in `tests/reports/`. It is ignored by Git ex
 
 ## Next-Phase Coverage
 
-The present scenarios verify the current Relentless Endurance command and Bar-1-only outcome, but do not claim a real native-event duplicate-suppression result or full command/UI behavior. The precise missing capabilities are: a scheduler model that can compare explicit ADR/SE hooks with native bar-change dispatch in a documented Roll20 ordering, and Roll20 macro/template substitution.
+The present scenarios verify the current Relentless Endurance command, Bar-1-only outcome, generic ADR/SaveEffects calls into TokenTriggers, and both controlled explicit/native processing orders. They do not prove Roll20's real event scheduling, Beacon synchronization order, or full command/UI behavior.
 
-The next improvement-review task is: add a controlled explicit-hook-versus-native-bar-event schedule matrix for ADR, SaveEffects, AE, and TokenTriggers, with deduplication assertions separated from the live Roll20 event-order result.
+The next improvement-review task is: verify the same explicit-hook-versus-native-event order matrix in the dedicated live Roll20 Test Game, including linked Beacon synchronization, before expanding local scheduling coverage.
 
 See the canonical [Test Strategy](../Guides%20and%20Notes/Architecture/Test-Strategy.md) and the live [Roll20 API Test Ground checklist](../Guides%20and%20Notes/Roll20%20Test%20Game%20Setup%20and%20Checklist.md).

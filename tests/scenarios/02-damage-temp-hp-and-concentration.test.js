@@ -10,6 +10,10 @@ test('ADR consumes temporary HP before HP for a represented Beacon token', async
   const { runtime } = await startedRuntime({ fixtures: true });
   const token = runtime.store.getObj('graphic', 'token-pc');
   const applyDamageToToken = runtime.global('applyDamageToToken');
+  const tokenTriggers = runtime.global('TokenTriggersAPI');
+  const original = tokenTriggers.processBar1Change;
+  const calls = [];
+  tokenTriggers.processBar1Change = (...args) => { calls.push(args); return original(...args); };
   const undo = await applyDamageToToken(token, 7);
   assert.equal(token.get('bar2_value'), 0);
   assert.equal(token.get('bar1_value'), 8);
@@ -17,6 +21,7 @@ test('ADR consumes temporary HP before HP for a represented Beacon token', async
   assert.equal(undo.amount, 7);
   assert.equal(undo.bar1Value, 10);
   assert.equal(undo.bar2Value, 5);
+  assert.deepEqual(calls.map(([, oldHp, newHp]) => [oldHp, newHp]), [[10, 8]]);
   assert.deepEqual(runtime.beacon.writes.map(({ name, value }) => ({ name, value })), [{ name: 'hp_temp', value: 0 }, { name: 'hp', value: 8 }]);
 });
 
@@ -39,5 +44,5 @@ test('ADR makes one explicit AE handoff for a lethal cached-damage application',
   assert.equal(target.get('bar1_value'), 0);
   assert.equal(calls.length, 1);
   assert.deepEqual([...calls[0]], ['token-ally', 'token-pc', 3, 0]);
-  assert.equal(runtime.global('TokenTriggersAPI'), undefined);
+  assert.equal(typeof runtime.global('TokenTriggersAPI').processBar1Change, 'function');
 });

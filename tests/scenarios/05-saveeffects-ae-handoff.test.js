@@ -11,6 +11,10 @@ test('SaveEffects damage helper retains save ownership and schedules AE only for
   const target = runtime.store.getObj('graphic', 'token-pc');
   target.set({ bar1_value: 2, bar2_value: 5 });
   const apply = runtime.global('seApplyDamageToToken');
+  const tokenTriggers = runtime.global('TokenTriggersAPI');
+  const originalTokenTriggers = tokenTriggers.processBar1Change;
+  const tokenTriggerCalls = [];
+  tokenTriggers.processBar1Change = (...args) => { tokenTriggerCalls.push(args); return originalTokenTriggers(...args); };
   const notify = runtime.global('safelyNotifyAeDamageResult');
   const result = await apply(target, 7);
   const ae = runtime.global('ActionEconomyV2API');
@@ -23,6 +27,7 @@ test('SaveEffects damage helper retains save ownership and schedules AE only for
   assert.equal(result.hpAfter, 0);
   assert.equal(result.tempBefore, 5);
   assert.equal(result.tempAfter, 0);
+  assert.deepEqual(tokenTriggerCalls.map(([, oldHp, newHp]) => [oldHp, newHp]), [[2, 0]]);
   assert.deepEqual(calls, [['token-ally', 'token-pc', 2, 0]]);
   assert.ok(runtime.context.state.SaveEffects, 'SaveEffects retains its own state namespace');
   assert.equal(Object.hasOwn(runtime.context.state.SaveEffects, 'conditions'), false, 'SaveEffects did not claim AE condition ownership');
