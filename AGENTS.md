@@ -221,16 +221,16 @@ Run syntax validation when possible.
 ## Delegated Work Quality Gate
 
 * Delegation is conditional, not automatic for every request.
-* Do not use subagents by default for a simple macro, a syntax question, a documentation question, or a small isolated change where delegation would not materially improve reliability.
-* For substantive bug diagnosis, nontrivial script revisions, broad audits, or architecture work, the lead agent should delegate independent read-heavy investigation when useful.
-* For a nontrivial code revision, normally use `roll20-explorer` before editing and `roll20-reviewer` after the lead agent has completed the proposed change.
-* Use only the number of subagents that the task actually needs. Prefer one focused explorer and one final reviewer over broad delegation.
+* Do not delegate simple macros, syntax questions, documentation-only work, or small isolated changes where delegation would not materially improve reliability.
+* For substantive bug diagnosis, nontrivial script revisions, broad audits, or architecture work, use focused read-heavy investigation when useful.
+* For a nontrivial revision, normally use `roll20-explorer` before editing, `roll20-implementer` for the production edit, and `roll20-reviewer` after the completed change.
+* The lead agent controls scope and architecture, but should not ordinarily make the initial production edit it will later accept.
 * The lead agent must wait for delegated results and personally verify them against the current active scripts and repository instructions.
-* The lead agent must make all repository edits itself. Subagents are read-only and must not modify files.
-* A subagent summary is not proof that the work is correct. If findings are incomplete, contradictory, or unsupported, the lead agent must investigate further or delegate a focused follow-up.
-* Before reporting a substantive task complete, the lead agent must review the completed diff, run syntax validation where feasible, perform relevant tests or provide exact Roll20 test steps with expected results, and report the validation outcome.
-* The lead agent must not tell the user that a task is complete until this quality gate is satisfied.
-* The user may explicitly require delegation for any task by saying, “Use the explorer and reviewer workflow for this.”
+* A subagent summary is not proof that the work is correct.
+* If findings are incomplete, contradictory, or unsupported, the lead agent must investigate further or delegate a focused follow-up.
+* Before reporting a substantive task complete, the lead agent must review the final diff, reviewer findings, validation output, and relevant Roll20 test steps with expected results.
+* Use `gpt-5.6-luna` only for bounded, repeatable, low-judgment work.
+* After validating completed repository changes, ask, “Would you like me to commit and push these completed changes?” Do not commit, push, amend, force-push, or stage unrelated files without explicit authorization. Do not ask for analysis-only, review-only, or no-change tasks.
 
 ## Architecture Consistency
 
@@ -269,15 +269,12 @@ Do not commit or push changes unless the user explicitly requests it.
 
 ## Script Batches
 
-When combining scripts:
+Combined Project-upload batches are historical convenience artifacts, not active Roll20 scripts.
 
-* Preserve each script verbatim.
-* Keep upload order unless instructed otherwise.
-* Add a batch header and line-numbered TOC.
-* Add `BEGIN SCRIPT` and `END SCRIPT` separators.
-* Include original filenames.
-* Validate TOC line numbers.
-* Output one upload-ready `.md` file.
+* Keep one current individual `.js` file per installed script in `Scripts/`.
+* Do not place combined batches in `Scripts/` or treat them as active source.
+* Preserve the documented Roll20 installation order.
+* If the user requests a new Project-upload bundle, generate it outside `Scripts/`, label it non-installable and non-authoritative, and preserve each source script verbatim.
 
 ## Macro Work
 

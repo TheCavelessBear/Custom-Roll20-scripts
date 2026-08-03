@@ -1,6 +1,6 @@
 # Roll20 Coding Change Log
 
-Last updated: 2026-08-02
+Last updated: 2026-08-03
 
 ## Purpose
 
@@ -45,6 +45,41 @@ For future updates:
 - The current `StateWipe.md` predates TokenTriggers and DoorSounds Registry state. Its configured wipe list does not currently include `state.TokenTriggers` or `state.DoorSounds`.
 
 # Change History
+
+## 2026-08-03 - Individual active-script migration and integration registry
+
+### Repository script inventory (43 installed scripts)
+
+Files: the 43 individual `.js` files in `Scripts/`; Architecture registry and governance documentation.
+
+Problem or goal:
+
+- Replace non-installed Project-upload batch artifacts with one authoritative repository file per actually installed Roll20 script, preserving the confirmed live upload order.
+
+Changes:
+
+- Removed batch wrapper lines from 28 newly separated scripts without changing their inner source.
+- Replaced the extracted TokenMod documentation placeholder with the supplied working `TokenMod` 0.8.88 source.
+- Removed the four combined batch artifacts from the active `Scripts` root and recorded all 43 individual files in installation order.
+- Updated repository governance, command/API contracts, state/ownership contracts, live verification, and agent routing around the individual-file workflow.
+
+Compatibility:
+
+- Script behavior and embedded versions are unchanged for the 28 mechanically recovered sources. TokenMod remains version 0.8.88.
+- No StateWipe, state migration, macro replacement, FX change, or prior-version reorganization is required.
+- The separated files must be installed in the order recorded by `Guides and Notes/Architecture/Command-and-API-Registry.md`. Combined batches must not be installed.
+
+Validation performed:
+
+- All 43 active `.js` files passed Node.js syntax validation.
+- The 28 recovered files matched their archived batch interiors line-for-line after removing only the wrapper lines.
+- `Scripts/TokenMod.js` matched the supplied source by SHA-256: `41EFA21342BEB4ABE64E77C18810D174405F0B650D63A301EB8386D835B6B71F`.
+- Confirmed a one-to-one mapping between the 43 active filenames and the supplied installation order, with no active batch or duplicate root file.
+
+Known limitations:
+
+- Local syntax validation does not prove Roll20 runtime load order, sandbox globals, permissions, Beacon synchronization, FX, audio, paths, doors, dynamic lighting, or UI behavior.
+- ADR and SaveEffects call `TokenTriggersAPI.processBar1Change`, while the active TokenTriggers source exposes `TokenTriggers`; the runtime API source still requires verification.
 
 ## 2026-08-02 - Persistent character keyrings and container keys
 

@@ -1,0 +1,59 @@
+# Command and API Registry
+
+## Registry Rules
+
+This registry inventories every current `.js` file directly under `Scripts/`. Rows are in the user-confirmed Roll20 installation order; that order is part of the integration contract. Archived files, `Scripts/Un-grouped`, and historical Project-upload batches are excluded. State, token-bar, and Beacon details are maintained only in [State and Ownership Registry](State-and-Ownership-Registry.md).
+
+`Requires verification` means the active source does not prove the live campaign behavior or installed state.
+
+## Installed Script Order and Contracts
+
+| # | Active file | Owner responsibilities | Commands and events | Global public APIs | Dependencies and live-only checks |
+|---:|---|---|---|---|---|
+| 1 | `GroupInitiative.js` | Group initiative rolls, stacks, stat groups, and turn-order management | `!group-init`, `!group-init-config`; `ready`, chat | `GroupInitiative.ObserveTurnOrderChange`, `RollForTokenIDs` | Observed by TurnMarker. Live: sheet stat groups, sorting, turn-order UI. |
+| 2 | `SimpleSound.js` | Jukebox playback utility | `!splay`, `!sstop`, `!swhisper`; `ready`, chat | `simpleSound.CheckInstall`, `RegisterEventHandlers` | Called by generated actions and configured mechanics. Live: track names, player/GM audio visibility. |
+| 3 | `TokenMod.js` | Generic token mutation and observer notifications | `!token-mod`; `ready`, chat, token-marker configuration change | `TokenMod.ObserveTokenChange` | Observed by ScriptCards. Live: permissions, default-token writes, token markers, observer ordering. |
+| 4 | `ScriptCards.js` | General card scripting and trigger engine; not owner of invoked mechanics | `!scriptcards`, `!scriptcard`, `!script`, `!sc-*`; `ready`, chat, turn order, handout change, dynamic triggers | `ScriptCards.ObserveTokenChange` | Optionally observes TokenMod; generic sheet/object/bar operations. Live: handouts, templates, triggers, rendering. |
+| 5 | `MathOps.js` | Meta-operation math evaluation | Meta-script chat processing; `ready`, chat | `MathOps.MathProcessor` | Registers with ZeroFrame. Live: meta-operation order and inline-roll inputs. |
+| 6 | `Plugger.js` | Meta-script plugin dispatch and registered rules | Meta-script chat processing; `ready`, chat | `Plugger.RegisterRule` | Registers with ZeroFrame; includes PluggerPlugins01 rules. Live: rule order and plugin command execution. |
+| 7 | `libTable.js` | Rollable-table lookup library | `ready` | `libTable` table/item lookup methods | Shared library. Live: table discovery and weighted results. |
+| 8 | `Muler.js` | Mule-variable get/set meta operations | `!mulerconfig`; `ready`, chat | No callable return API | Meta-toolchain component. Live: mule ability data, permissions, variable expansion. |
+| 9 | `SelectManager.js` | Preserves/injects message selection, sender, and player context | `!forselected` and configuration/meta routes; `ready`, chat | `SelectManager.GetSelected`, `GetWho`, `GetPlayerID` | Supports meta-script command chains. Live: selected/target context and API-generated chat. |
+| 10 | `VectorMath.js` | Vector geometry library | No event or chat entry point | `VecMath` vector operations | Used by geometry/lighting scripts. |
+| 11 | `MatrixMath.js` | Matrix transform library | No event or chat entry point | `MatrixMath` matrix operations | Used by PathMath and geometry scripts. |
+| 12 | `libInline.js` | Inline-roll parsing library | `ready` | `libInline` roll/dice/value/table parsing methods | Used by meta scripts and parsers. |
+| 13 | `PathMath.js` | Path geometry, intersections, transforms, and UDL windows | `!pathInfo`, `!pathToUDLWindow`; chat | `PathMath` geometry classes and functions | Uses VecMath/MatrixMath. Live: Roll20 path formats and dynamic-lighting geometry. |
+| 14 | `checkLightLevel.js` | Determines whether a token/location is lit | `!checklight`; `ready`, chat | `checkLightLevel.isLitBy` | Uses path/vector geometry and page lighting. Live: UDL settings and light-source behavior. |
+| 15 | `libTokenMarkers.js` | Token-marker registry lookup | `ready` | `libTokenMarkers.getStatus`, `getStatuses`, `getOrderedList` | Live: campaign token-marker configuration. |
+| 16 | `Messenger.js` | Shared HTML, CSS, buttons, and message-box construction | `ready` | `Messenger` formatting/UI helpers | Used by scripts that adopt its UI helpers. Live: chat rendering. |
+| 17 | `SmartAoE.js` | General AoE geometry and control links | `!smartaoe`, `!smartapply`, `!smartclearcache`, ping/query/remove/rotate/trigger commands; `ready`, chat, graphic change/destroy | `SmartAoE.ObserveTokenChange` | Uses geometry libraries and Roll20 paths. Live: grid geometry, links, pings, paths. |
+| 18 | `DoorSounds.js` | Door-to-sound group registry and playback | `!doorsound`; `ready`, chat, door open change | `DoorSounds.playSound` | Uses Jukebox tracks. Live: doors, secret-door policy, track playback. |
+| 19 | `Fetch.js` | Object/property fetch meta operation | `!fetchconfig`, `!fetchprops`, `!fetchprops-rebuild`; `ready`, chat | `Fetch.KnownObjectTypes`, `PropContainers`, `CustomPropsByType` | Registers with ZeroFrame; resolves Roll20 objects and legacy attribute objects. Its local synchronous `getSheetItem` is not the Beacon async API and must not be used as evidence of Beacon-safe access. |
+| 20 | `TurnMarker1.js` | Round marker, turn announcements, pulling, and turn-order helpers | `!tm`, `!turnmarker`, `!eot`, `!pot`; `ready`, chat, initiative page, turn order, lastmove, graphic destroy | `TurnMarker`; `TurnOrder` get/set/next/previous helpers | Calls `GroupInitiative.ObserveTurnOrderChange`. Live: marker token, animations, initiative transitions. |
+| 21 | `APILogic.js` | Conditional and looping meta-script control | Meta-script chat processing; `ready`, chat | No callable return API | Registers with ZeroFrame; depends on meta-toolchain message state. Live: nested condition/loop rewriting. |
+| 22 | `ActionEconomyV2.8.2.js` | Action economy, movement/mounts, conditions/effects/durations, concentration, hazards, summons, visuals, combat state | `!ae` and specialized `!ae-*`; `ready`, chat, turn order, graphic/bar changes, graphic/character lifecycle | `ActionEconomyV2API` save, effect, trait, attack/damage, summon/hazard, movement, and status methods | Calls `SaveEffectsAPI.rollSave`; called by ADR, SE, AoEBoom, HPManager, TokenTriggers. Live: Beacon/bar ordering and deduplication. |
+| 23 | `ZeroFrame.js` | Meta-script message loop and operation ordering | Meta-script chat processing; `ready`, chat | `ZeroFrame.RegisterMetaOp` | Orchestrates MathOps, Plugger, Muler, SelectManager, APILogic, Fetch, and related meta operations. Live: loop order and command rewriting. |
+| 24 | `SaveEffects1.3.js` | Save/DC resolution, save/damage cards, save-based damage | `!se`; `ready`, chat | `SaveEffectsAPI.rollSave` | Calls AE APIs, `TokenTriggersAPI.processBar1Change`, and `!ae-con remove`; called by AE/AoEBoom. Live: Beacon async access and duplicate effects. |
+| 25 | `MetaScriptToolbox.js` | Shared meta-script utility functions | `ready` | No callable return API | Supports the ZeroFrame/meta-toolchain. |
+| 26 | `Executioner.js` | Executioner weapon-form selection and ability routing | `!executioner`; `ready`, chat | No public API | Reads character abilities. Live: form state and ability names. |
+| 27 | `HPManager1.1.js` | Healing and direct HP adjustment | `!hp`; `ready`, chat | No public API | Calls AE friendliness query; must not initiate concentration saves. Live: linked/unlinked HP synchronization. |
+| 28 | `Auras.js` | Aura controls | `!aura`; chat | No public API | Generic token aura mutation. Live: token permissions and aura presentation. |
+| 29 | `AttackDamageResolver1.3.js` | Attack targets, damage cache/slots, application/undo, sources, AE hooks | Roll-template capture and `!adr`; `ready`, chat, turn order | No public API | Calls AE damage/attack APIs and `TokenTriggersAPI.processBar1Change`. Live: roll templates, Beacon/bar synchronization, undo. |
+| 30 | `SpawnDefaultTokenV1.1.2.js` | Default-token spawning mechanism | Case-sensitive `!Spawn`; `ready`, chat | `SpawnDefaultToken.spawnAtXY` | Called by AoEBoom and MapChange. Live: default-token callbacks, placement, links, FX. |
+| 31 | `Dismiss.js` | Deletes a specified token | `!dismiss`; chat | No public API | Live: permissions and target-token identity. |
+| 32 | `AoEBoom1.1.2.js` | AoE path geometry, templates, targeting, apply routing | `!boom`; `ready`, chat, graphic change | `AoEBoom` version metadata | Calls SaveEffects commands, SpawnDefaultToken API, and AE pending summon/hazard APIs. Live: paths, movement, FX. |
+| 33 | `MapChange.js` | Player/GM map movement, access lists, and return-token spawning | `!mapchange`, `!mc`; `ready`, chat | `MapChange.ConstructMaps`, `RegisterEventHandlers`, `CheckInstall` | Calls `SpawnDefaultToken.spawnAtXY`. Live: page permissions, player ribbon, default tokens. |
+| 34 | `TokenActionBuilder0.4.0.js` | Builds character token actions for owning scripts | `!tab`; `ready`, chat | Version metadata only | Generates ADR, SE, AE, and SimpleSound commands. Live: ability permissions and names. |
+| 35 | `Audit.js` | Read-only state inspection cards | `!stateaudit`; `ready`, chat | No public API | Reads configured script state roots. Live: GM permissions and current state. |
+| 36 | `StateWipe.js` | Administrative listing and deletion of configured state roots | `!statelist`, `!statewipe`; `ready`, chat | No public API | Destructive administrative utility. Live: GM confirmation and sandbox restart. |
+| 37 | `BeaconAttributeTester.js` | Beacon attribute get/set/snapshot verification utility | `!btest`; `ready`, chat | No public API | Calls generic `getSheetItem`/`setSheetItem`. Live: Beacon read/write and delayed synchronization. |
+| 38 | `DoorControl.js` | Door open/close command utility | `!doorctl`; `ready`, chat | No public API | Door changes are observed by DoorSounds. Live: door IDs and permissions. |
+| 39 | `TokenTriggers1.3.2.js` | HP-zero, bloodied, Relentless Endurance, and threshold presentation | `!tokentrigger`; `ready`, chat, bar 1/turn-order changes, character/graphic destroy | `TokenTriggers` configuration/trigger helpers | Calls AE friendliness/effect commands. **Requires verification:** ADR/SE expect `TokenTriggersAPI.processBar1Change`, which is not exported here. |
+| 40 | `TokenAnimator1.3.js` | Token movement, scale, rotation, fade, and animation baselines | `!tokenanimator`, legacy `!tokensize`; `ready`, chat, graphic destroy | `TokenAnimator` animation methods | Uses timers/page scale. Live: cadence, cancellation, aura/opacity behavior. |
+| 41 | `HandoutAccess1.1.js` | Handout reveal/hide and player journal access | `!handout`; `ready`, chat | `HandoutAccess.reveal`, `hide`, `revealByReference` | Called by LootManager. Live: permissions and handout links. |
+| 42 | `TargetReport1.0.js` | Read-only target status reporting | `!targetreport`, `!tr`; `ready`, chat | No public API | Reads token bars and Beacon values. Live: controller permissions and PC/NPC values. |
+| 43 | `LootManager1.3.js` | Loot containers, keys, currency, handout rewards, transfers | `!loot`; `ready`, chat | `LootManager.inspect` | Calls HandoutAccess; reads/writes Beacon currency and skill data. Live: GM notes, handouts, Jukebox, concurrent claims. |
+
+## Registry Maintenance
+
+When an installed filename, order position, command, handler, global API, dependency, or owned responsibility changes, update this file in the same authorized revision. Keep state shapes in the State and Ownership Registry and link rather than duplicate.

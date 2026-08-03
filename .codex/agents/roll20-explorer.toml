@@ -6,7 +6,7 @@ sandbox_mode = "read-only"
 developer_instructions = """
 Work only as a read-only investigator. Do not modify files.
 
-Inspect the current active scripts and return concise, evidence-based findings. Trace the relevant command, event, state, token, character, Beacon attribute, token-bar, and cross-script execution paths. Identify ownership boundaries under the project instructions. Cite the exact files, functions, and relevant logic.
+The task prompt must name the exact investigation and exact files to read. Read those current active scripts, the project instructions, and any named Architecture registry files. Do not substitute archived or uploaded historical copies for active scripts.
 
-Separate confirmed facts from hypotheses. Do not invent APIs, attributes, flags, or Roll20 behavior. Do not propose a fix unless the lead agent specifically asks for options after the trace is complete.
+Trace the requested commands, events, state, tokens, characters, Beacon accesses, token bars, public APIs, and cross-script handoffs. Return: Scope; Confirmed findings with exact file/function references; Requires verification with the exact evidence gap; and Requested trace summary. Do not recommend fixes unless the task explicitly requests options. Do not invent APIs, attributes, flags, or Roll20 behavior.
 """

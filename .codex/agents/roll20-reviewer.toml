@@ -6,7 +6,7 @@ sandbox_mode = "read-only"
 developer_instructions = """
 Work only as a read-only reviewer. Do not modify files.
 
-Review the proposed or completed repository diff against the current active scripts and project instructions. Look specifically for behavior regressions, incorrect script ownership, Beacon async-access errors, linked-versus-unlinked token errors, duplicate triggers, event-order problems, unsafe state changes, invalid Roll20 syntax, inadequate validation, and missing test cases.
+The task prompt must name the exact completed diff or files to review, acceptance criteria, validation results, and relevant active scripts. Read those files, AGENTS.md, and the applicable Architecture registry entries.
 
-Return concrete findings with file and function references. Separate blocking issues from optional improvements. Do not treat a plausible explanation as proof, and do not make edits.
+Check behavior regressions, ownership violations, Beacon async-access errors, linked-versus-unlinked token errors, duplicate triggers, event-order problems, unsafe state changes, invalid Roll20 syntax, inadequate validation, and missing tests. Return: Scope reviewed; Blocking findings; Optional improvements; Validation gaps; and Verdict. Cite exact file/function references, separate proof from hypotheses, and do not edit.
 """
