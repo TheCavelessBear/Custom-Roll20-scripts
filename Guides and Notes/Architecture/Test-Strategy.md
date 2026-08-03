@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Testing has two complementary layers: deterministic local regression tests in a future mocked Roll20 harness, and mandatory verification in a dedicated live Roll20 Test Game. Neither layer replaces source review, ownership review, or final diff inspection.
+Testing has two complementary layers: the deterministic local regression suite in [tests/README.md](../../tests/README.md), and mandatory verification in the dedicated live [Roll20 API Test Ground checklist](../Roll20%20Test%20Game%20Setup%20and%20Checklist.md). Neither layer replaces source review, ownership review, or final diff inspection.
 
 ## Validation Layers
 
@@ -28,7 +28,7 @@ HP or damage work additionally covers temporary HP, prevention/resistance/immuni
 
 ## Harness Boundaries
 
-The future harness belongs under `tests/` and must not redefine expected behavior merely to pass a test. Fixtures and scenarios are reviewed source; `tests/reports/` is generated output only. The first harness milestone is defined in [tests/README.md](../../tests/README.md).
+The local harness belongs under `tests/` and must not redefine expected behavior merely to pass a test. Fixtures and scenarios are reviewed source; `tests/reports/` is generated output only. Its current mock boundary, executable scenarios, and next phase are defined in [tests/README.md](../../tests/README.md).
 
 Mocking is appropriate for Roll20 globals, object storage, events, chat capture, timers, state, and Beacon calls. It cannot prove Roll20's real scheduler, sheet-worker synchronization, selected/target substitution, player permissions, template rendering, path/door/dynamic-light behavior, FX, audio, or default-token callbacks.
 

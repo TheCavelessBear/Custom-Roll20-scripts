@@ -1,0 +1,10 @@
+{
+  "name": "roll20-api-local-test-ground",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Dependency-free local Roll20 API regression harness.",
+  "scripts": {
+    "test": "node run-tests.js",
+    "test:load": "node --test scenarios/00-load-all-active-scripts.test.js"
+  }
+}

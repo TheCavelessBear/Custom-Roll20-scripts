@@ -2,7 +2,7 @@
 
 ## Dedicated Test Game
 
-Use a dedicated Roll20 Test Game that mirrors the production sheet type, installed Mods, API upload order, macros, FX definitions, page settings, and representative permissions. Do not use production as the first verification environment.
+Use the permanent dedicated **Roll20 API Test Ground** described in the [setup and checklist](../Roll20%20Test%20Game%20Setup%20and%20Checklist.md). It mirrors the production sheet type, installed Mods, API upload order, macros, FX definitions, page settings, and representative permissions. Do not use production as the first verification environment.
 
 Record before each integration test:
 

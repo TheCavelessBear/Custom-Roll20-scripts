@@ -1,0 +1,3 @@
+# Generated local Roll20 harness reports; retain the directory marker only.
+tests/reports/*
+!tests/reports/.gitkeep
