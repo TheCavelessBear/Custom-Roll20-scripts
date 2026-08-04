@@ -21,6 +21,16 @@ test('all active scripts load in the documented installation order', async () =>
   assert.ok(runtime.eventBus.registrations.every((registration) => registration.source.endsWith('.js')));
 });
 
+test('ADR, SaveEffects, and HPManager load without private-helper overwrites', async () => {
+  const { outcomes } = await startedRuntime();
+  for (const file of ['SaveEffects1.3.1.js', 'HPManager1.1.1.js', 'AttackDamageResolver1.3.1.js']) {
+    const entry = manifest.scripts.find((script) => script.file === file);
+    const outcome = outcomes.find((result) => result.file === file);
+    assert.deepEqual(entry.allowedOverwrites, []);
+    assert.deepEqual(outcome.globalsOverwritten, []);
+  }
+});
+
 test('per-script global contract rejects unknown additions and overwrites', () => {
   const entry = { file: 'Synthetic.js', ownedGlobals: ['Owned'], allowedOverwrites: ['Shared'] };
   const shared = {};

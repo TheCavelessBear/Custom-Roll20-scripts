@@ -33,12 +33,12 @@ Rows follow the installed order in the [Command and API Registry](Command-and-AP
 | 21 | `APILogic.js` | `state.APILogic` schema/logging plus `state.torii` | None | Owns conditional/loop meta-operation state. |
 | 22 | `ActionEconomyV2.8.2.js` | `state.ActionEconomyV2`: economy, movement, attacks, conditions/effects, mounts, modifiers, saves, hazards, summons, visuals, terrain, sizes, damage sources, pending records | Reads/writes bars 1–2 for owned support/fallback paths; owns bar 3; Beacon helpers plus explicit `hp`, `hp_temp`, `spell_save_dc`, `speed`, `initiative_bonus`, and `user.*` values | Owns all AE mechanics, not general damage application. |
 | 23 | `ZeroFrame.js` | `state.ZeroFrame`: schema/config/loop order plus `state.torii` | None | Owns meta-operation orchestration state. |
-| 24 | `SaveEffects1.3.js` | `state.SaveEffects.sources`, keyed by source/player context | Save damage reads/writes bars 1–2 and HP max; Beacon `hp`, `hp_temp`, HP max, and generic async save/skill reads | Owns saves and save-based damage, not AE effects. |
+| 24 | `SaveEffects1.3.1.js` | `state.SaveEffects.sources`, keyed by source/player context | Save damage reads/writes bars 1–2 and HP max; after the TokenTriggers resolution, it writes the returned Bar 1 result and represented Beacon `hp`; Beacon `hp_temp`, HP max, and generic async save/skill reads | Owns saves and save-based damage, not AE effects. |
 | 25 | `MetaScriptToolbox.js` | `state.MetaScriptToolbox` schema plus `state.torii` | None | Owns meta-tool utility configuration only. |
 | 26 | `Executioner.js` | `state.Executioner[tokenId].form` | No bars/Beacon | Owns weapon-form selection. |
-| 27 | `HPManager1.1.js` | `state.HPManager` | Owns healing/direct bar 1 writes; Beacon `hp` for represented characters | Healing must not trigger concentration saves. |
+| 27 | `HPManager1.1.1.js` | `state.HPManager` | Owns healing/direct bar 1 writes; Beacon `hp` for represented characters | Healing must not trigger concentration saves. |
 | 28 | `Auras.js` | No persistent state found | Writes token aura properties; no Beacon | Owns aura controls only. |
-| 29 | `AttackDamageResolver1.3.js` | `state.AttackDamageResolver`: target memory, slots, last turn/attack, undo; module damage cache | Owns damage/undo bars 1–2 and mirrors Beacon `hp`/`hp_temp` | Owns attack/damage state, not AE effects. |
+| 29 | `AttackDamageResolver1.3.1.js` | `state.AttackDamageResolver`: target memory, slots, last turn/attack, undo; module damage cache | Owns damage/undo bars 1–2, resolves provisional Bar 1 damage through TokenTriggers, and mirrors the returned final `hp`/`hp_temp` values to represented Beacon tokens | Owns attack/damage state, not AE effects. |
 | 30 | `SpawnDefaultTokenV1.1.2.js` | No persistent state found | Can copy/override bars 1–3 and links; no Beacon calls | Spawning mechanism; callers own meaning. |
 | 31 | `Dismiss.js` | No persistent state found | Deletes addressed token | Token cleanup utility only. |
 | 32 | `AoEBoom1.1.2.js` | `state.AoEBoom.templates`, keyed by template/path identity | No bar ownership; reads Beacon `spell_save_dc` | Owns AoE geometry/template state. |

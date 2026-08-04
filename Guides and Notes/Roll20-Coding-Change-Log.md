@@ -22,8 +22,9 @@ For future updates:
 | LootManager | `LootManager1.3.js` | `LootManager1.2.js` | HandoutAccess 1.1 for handout loot; Experimental Mod sandbox with Beacon `getSheetItem` and `setSheetItem`; optional Jukebox tracks named `grab` and `coins` |
 | ActionEconomyV2 | `ActionEconomyV2.3.2.md` | All earlier AE builds in this log | `AoEBoom1.1.md` and `SaveEffects1.1.md` for corrected Wall of Fire recurring damage |
 | TokenTriggers | `TokenTriggers1.3.3.js` | TokenTriggers 1.0.0 through 1.3.2 | `ActionEconomyV2.8.2.js` for PC/Ally-aware turn-order removal; ADR/SaveEffects may call the generic threshold API |
-| AttackDamageResolver | `AttackDamageResolver1.1.md` | Original ADR source | `TokenTriggers1.3.1.md` when Bloodied, Relentless Endurance, or HP 0 triggers are used |
-| SaveEffects | `SaveEffects1.1.md` | Original SaveEffects source | `TokenTriggers1.3.1.md` when TokenTriggers should react to SE damage |
+| AttackDamageResolver | `AttackDamageResolver1.3.1.js` | `AttackDamageResolver1.3.js` | `TokenTriggers1.3.3.js` when Bloodied, Relentless Endurance, or HP 0 triggers are used |
+| SaveEffects | `SaveEffects1.3.1.js` | `SaveEffects1.3.js` | `TokenTriggers1.3.3.js` when TokenTriggers should react to SE damage |
+| HPManager | `HPManager1.1.1.js` | `HPManager1.1.js` | No new dependency; healing behavior is unchanged |
 | AoEBoom | `AoEBoom1.1.md` | Original AoEBoom source | `ActionEconomyV2.3.2.md` and `SaveEffects1.1.md` for corrected directional-hazard saves and damage |
 | Token Action Builder | `Token Action Builder0.4.0.md` | Token Action Builder 0.3.1 | ADR and `!splay` for generated FX and sound commands |
 | DoorSounds | `DoorSounds-Registry.md`, version 1.0.0 | Original fixed DoorSounds list | None |
@@ -40,11 +41,44 @@ For future updates:
 - Blood Frenzy requires AE 2.3 or later and TokenTriggers 1.2 or later.
 - Blood Frenzy sound playback requires TokenTriggers 1.2.2 or later.
 - Relentless Endurance requires TokenTriggers 1.3 or later.
-- Reliable ADR damage-trigger integration requires ADR 1.1 and TokenTriggers 1.3.1.
-- Reliable SaveEffects damage-trigger integration requires SaveEffects 1.1 and TokenTriggers 1.3.1.
+- Reliable ADR damage-trigger integration requires ADR 1.3.1 and TokenTriggers 1.3.3.
+- Reliable SaveEffects damage-trigger integration requires SaveEffects 1.3.1 and TokenTriggers 1.3.3.
 - The current `StateWipe.md` predates TokenTriggers and DoorSounds Registry state. Its configured wipe list does not currently include `state.TokenTriggers` or `state.DoorSounds`.
 
 # Change History
+
+## 2026-08-03 - Final TokenTriggers HP persistence and private-helper isolation
+
+### AttackDamageResolver 1.3.1, SaveEffects 1.3.1, and HPManager 1.1.1
+
+Files: `AttackDamageResolver1.3.1.js`, `SaveEffects1.3.1.js`, and `HPManager1.1.1.js`.
+
+Problem or goal:
+
+- Ensure ADR and SaveEffects persist TokenTriggers' final resolved Bar 1 value after a threshold reaction such as Relentless Endurance.
+- Remove the four audited active-source private-helper collisions without changing public APIs or commands.
+
+Changes:
+
+- ADR now writes its calculated Bar 1 damage value, calls the unchanged generic `TokenTriggersAPI.processBar1Change(token, oldHp, newHp)` wrapper, then writes the returned final numeric HP to Bar 1 and represented Beacon `hp`. Its undo record retains that resolved `bar1After` value while preserving the pre-damage snapshot used by `!adr undo`.
+- SaveEffects now writes its TokenTriggers-resolved `hpAfter` back to Bar 1 before writing represented Beacon `hp`.
+- Renamed only private helpers and their internal callers: ADR uses `adrReplaceInlineRolls`, `adrGetAeModifiedDamage`, and `adrProcessTokenTriggersBar1Change`; SaveEffects uses `seReplaceInlineRolls`, `seGetAeModifiedDamage`, and `seProcessTokenTriggersBar1Change`; HPManager uses `hpReplaceInlineRolls`.
+- Updated the active-script manifest and local regression coverage so all four former helper-overwrite exceptions are removed and collision-free loading is required.
+
+Compatibility and migration:
+
+- Replace the active files with `AttackDamageResolver1.3.1.js`, `SaveEffects1.3.1.js`, and `HPManager1.1.1.js`. Their unchanged prior builds are archived at `Scripts/Prior Versions/AttackDamageResolver1.3.js`, `Scripts/Prior Versions/SaveEffects1.3.js`, and `Scripts/Prior Versions/HPManager1.1.js`.
+- Existing commands, public APIs, state namespaces, TokenTriggers deduplication, unlinked-token handling, HPManager healing, and AE ownership are preserved. No StateWipe, migration, re-registration, or macro replacement is required.
+
+Validation performed:
+
+- `node --check` passed for all 43 active `Scripts/*.js` files.
+- `node run-tests.js` passed all 22 local tests, including ordinary ADR/temp-HP persistence, ADR Relentless final Bar 1/Beacon/undo data, SaveEffects final Bar 1/Beacon persistence, represented/unlinked behavior, undo, and collision-free loading.
+- `node --test scenarios/00-load-all-active-scripts.test.js` passed all 5 startup/global/handler tests.
+
+Known limitations:
+
+- Local tests do not prove Roll20's native-event, Beacon sheet-worker, or UI timing. Run the updated dedicated live Test Game checklist after upload, especially the ADR/SaveEffects Relentless Endurance and undo probes.
 
 ## 2026-08-03 - TokenTriggers ADR/SaveEffects compatibility API restoration
 

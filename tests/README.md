@@ -8,11 +8,11 @@ Run it with `npm.cmd test` from this directory on Windows, or `node run-tests.js
 
 - one shared VM runtime for the active-script load order, startup exceptions, deliberate global exposure, documented public APIs, and key handler registrations;
 - exact agreement between the manifest and the root `Scripts/*.js` inventory;
-- per-script global ownership, bounded legacy overwrite exceptions, typed API members, and source-attributed handler counts after empty-fixture ready processing;
+- per-script global ownership with no allowed private-helper overwrites among SaveEffects, HPManager, and ADR, typed API members, and source-attributed handler counts after empty-fixture ready processing;
 - a controlled event bus, chat capture, object store, deterministic timers/random values/time, state, and async Beacon read/write recording;
-- ADR temporary-HP-before-HP application and its lethal explicit AE handoff;
+- ADR temporary-HP-before-HP application, TokenTriggers-resolved Bar 1/Beacon persistence, resolved undo data, and its lethal explicit AE handoff;
 - HPManager healing and the no-AE-damage-processing boundary;
-- SaveEffects damage application and its lethal AE handoff without SaveEffects taking AE condition ownership;
+- SaveEffects damage application, TokenTriggers-resolved Bar 1/Beacon persistence, and its lethal AE handoff without SaveEffects taking AE condition ownership;
 - TokenTriggers' bar-1 subscription and its confirmed unrepresented-token guard;
 - ordinary represented-token HP-zero presentation through `!tokentrigger enable TOKEN_ID`, including dead-side selection, Bar 1 clearing, and restore;
 - blank-to-positive Bar 1 recovery after the HP-zero presentation clears the defeated token's displayed value;

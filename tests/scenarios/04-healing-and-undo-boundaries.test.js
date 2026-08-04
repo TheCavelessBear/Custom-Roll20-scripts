@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const { startedRuntime } = require('../harness/script-loader');
 
 // Evidence: HPManager handleHeal/applyHealing writes bar 1 and Beacon hp only
-// (HPManager1.1.js:52-70, 278-310); it does not call AE damage processing.
+// (HPManager1.1.1.js); it does not call AE damage processing.
 test('HPManager healing caps HP and does not invoke AE damage processing', async () => {
   const { runtime } = await startedRuntime({ fixtures: true });
   const token = runtime.store.getObj('graphic', 'token-pc');
@@ -23,7 +23,7 @@ test('HPManager healing caps HP and does not invoke AE damage processing', async
 
 // Evidence: ADR stores the pre-damage bar snapshot and `!adr undo` restores
 // bars plus represented Beacon current/max HP and temp HP
-// (AttackDamageResolver1.3.js:741-790, 1291-1303, 1420-1466).
+// (AttackDamageResolver1.3.1.js).
 test('ADR undo restores owned bars and represented Beacon values', async () => {
   const { runtime } = await startedRuntime({ fixtures: true });
   const token = runtime.store.getObj('graphic', 'token-pc');
@@ -33,6 +33,7 @@ test('ADR undo restores owned bars and represented Beacon values', async () => {
   assert.equal(token.get('bar1_value'), 8);
   assert.equal(token.get('bar2_value'), 0);
   assert.ok(runtime.context.state.AttackDamageResolver.lastDamageUndo);
+  assert.equal(runtime.context.state.AttackDamageResolver.lastDamageUndo.bar1After, 8);
 
   runtime.beacon.writes.length = 0;
   await runtime.emit('chat:message', { type: 'api', playerid: 'GM', content: '!adr undo' });

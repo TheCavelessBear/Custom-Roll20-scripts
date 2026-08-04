@@ -50,11 +50,13 @@ Expected: bars retain HP/temp HP/AE movement/AC meanings; represented values syn
 
 ### Damage, temporary HP, undo, and concentration
 
-1. Use the current ADR command shown by its GM menu: `!adr apply TARGET_ID [TYPE] [LABEL]` after rolling a supported damage card.
-2. Test damage fully absorbed by temporary HP, spillover to HP, a positive-to-zero result, and `!adr undo`.
-3. Repeat with a concentrating represented target and record AE's one intended concentration result.
+1. On a linked Beacon target set Bar 1/Beacon `hp` to 10 and Bar 2/Beacon `hp_temp` to 5. Roll a supported 7-damage card, then run `!adr apply TARGET_ID Fire Ordinary Damage`.
+2. Confirm Bar 2 becomes 0, Bar 1 and Beacon `hp` become 8, and ADR reports one damage result. Run `!adr undo`; confirm Bar 1/Beacon `hp` return to 10 and Bar 2/Beacon `hp_temp` return to 5.
+3. Set Bar 1/Beacon `hp` to 10 and Bar 2/Beacon `hp_temp` to 0. Run `!tokentrigger relentlessenable TARGET_ID`, roll a supported 10-damage card, then run `!adr apply TARGET_ID Fire Relentless Probe`.
+4. Confirm exactly one `Reduced to 1 HP instead of falling.` card appears; Bar 1 and Beacon `hp` are both 1; then run `!adr undo` and confirm Bar 1 and Beacon `hp` both return to 10.
+5. Repeat a positive-to-zero ADR result with a concentrating represented target and record AE's one intended concentration result.
 
-Expected: temporary HP is consumed first, undo restores ADR-owned values, and any explicit/native dependent hooks occur once. Beacon timing and concentration UI are live-only evidence.
+Expected: temporary HP is consumed first, ADR persists TokenTriggers' returned final HP to both Bar 1 and Beacon before recording undo data, undo restores the pre-damage snapshot, and any explicit/native dependent hooks occur once. Beacon timing and concentration UI are live-only evidence.
 
 ### Healing boundary
 
@@ -73,7 +75,7 @@ Expected: HP is capped at maximum and mirrors through the represented-token path
 6. Change Bar 2 only; confirm Relentless Endurance does not activate. Then reduce Bar 1 from a positive value to 0.
 7. Confirm Bar 1 becomes 1 and one `Reduced to 1 HP instead of falling.` card appears. Repeat the transition in the same combat and confirm the once-per-combat runtime prevents another activation.
 8. Reset with `!tokentrigger relentlessreset TOKEN_ID`, restore the token bars, and repeat once to prove the reset.
-9. Repeat one configured threshold transition through ADR and one through SaveEffects. Observe sandbox logs/event order and confirm each produces one TokenTriggers card/state change, not one from the explicit API plus another from the native Bar 1 event.
+9. Repeat one configured threshold transition through ADR and one through SaveEffects. For the SaveEffects probe, select the represented target with Bar 1/Beacon `hp` at 10 and Bar 2/Beacon `hp_temp` at 0, enable Relentless Endurance, then run `!se damage selected dex 99 10 Fire none`. Confirm Bar 1 and Beacon `hp` are both 1. Observe sandbox logs/event order and confirm each produces one TokenTriggers card/state change, not one from the explicit API plus another from the native Bar 1 event.
 
 Expected: ordinary configured HP-zero behavior stores and clears its presentation through the verified enable/restore commands; Relentless Endurance separately intercepts the represented token at 1 HP once per combat; ADR and SaveEffects use the same generic TokenTriggers hook without owning threshold mechanics; generic unrepresented tokens are ignored.
 
