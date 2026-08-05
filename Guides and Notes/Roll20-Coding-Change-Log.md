@@ -1,6 +1,6 @@
 # Roll20 Coding Change Log
 
-Last updated: 2026-08-03
+Last updated: 2026-08-04
 
 ## Purpose
 
@@ -26,7 +26,7 @@ For future updates:
 | SaveEffects | `SaveEffects1.3.1.js` | `SaveEffects1.3.js` | `TokenTriggers1.3.3.js` when TokenTriggers should react to SE damage |
 | HPManager | `HPManager1.1.1.js` | `HPManager1.1.js` | No new dependency; healing behavior is unchanged |
 | AoEBoom | `AoEBoom1.1.md` | Original AoEBoom source | `ActionEconomyV2.3.2.md` and `SaveEffects1.1.md` for corrected directional-hazard saves and damage |
-| Token Action Builder | `Token Action Builder0.4.0.md` | Token Action Builder 0.3.1 | ADR and `!splay` for generated FX and sound commands |
+| Token Action Builder | `TokenActionBuilder0.5.0.js` | `TokenActionBuilder0.4.0.js` | ADR and `!splay` for generated FX and sound commands |
 | DoorSounds | `DoorSounds-Registry.md`, version 1.0.0 | Original fixed DoorSounds list | None |
 | DoorControl | `DoorControl.md` | New utility | None |
 | Persistent State Manager | `StateWipe.md` | New utility | None |
@@ -46,6 +46,36 @@ For future updates:
 - The current `StateWipe.md` predates TokenTriggers and DoorSounds Registry state. Its configured wipe list does not currently include `state.TokenTriggers` or `state.DoorSounds`.
 
 # Change History
+
+## 2026-08-04 - Token Action Builder optional attack ability modifier
+
+### TokenActionBuilder 0.5.0
+
+File: `TokenActionBuilder0.5.0.js`.
+
+Changes:
+
+- The attack builder now asks whether to add the selected attack ability modifier and emits `--atkability yes` or `--atkability no`.
+- `attackBonusFormula()` includes the selected ability reference only when that option is enabled. Missing or unrecognized `--atkability` values preserve the prior enabled behavior.
+- Proficiency and `--atkbonus` remain independent. A no-ability, no-proficiency attack with `--atkbonus 9` generates `1d20 + 9` for normal, advantage, and disadvantage rolls.
+
+Preserved behavior:
+
+- Primary damage still independently honors `--mod1`; `--mod1 no --dmgbonus 4` produces damage dice plus 4, while the critical macro doubles only the dice.
+- Existing direct `!tab buildattack` commands without `--atkability` continue to include the selected ability modifier.
+
+Compatibility and migration:
+
+- Replace `TokenActionBuilder0.4.0.js` with `TokenActionBuilder0.5.0.js`. The unchanged prior source is archived at `Scripts/Prior Versions/TokenActionBuilder0.4.0.js`.
+- No StateWipe, data migration, re-registration, or macro replacement is required. Re-run the builder only when an existing generated attack should omit its ability modifier.
+
+Validation performed:
+
+- Local syntax and focused regression coverage verify the builder query, default and unknown option compatibility, numeric-only attack formulas, and normal/critical primary-damage formulas.
+
+Known limitations:
+
+- The local harness validates generated macro text but does not render the Roll20 attack or damage templates; confirm generated actions in the dedicated Test Game after upload.
 
 ## 2026-08-03 - Final TokenTriggers HP persistence and private-helper isolation
 

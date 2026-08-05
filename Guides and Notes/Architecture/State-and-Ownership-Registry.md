@@ -43,7 +43,7 @@ Rows follow the installed order in the [Command and API Registry](Command-and-AP
 | 31 | `Dismiss.js` | No persistent state found | Deletes addressed token | Token cleanup utility only. |
 | 32 | `AoEBoom1.1.2.js` | `state.AoEBoom.templates`, keyed by template/path identity | No bar ownership; reads Beacon `spell_save_dc` | Owns AoE geometry/template state. |
 | 33 | `MapChange.js` | `state.MapChange`: version/config, blocked players, public/private/archive/hidden maps, rejoin data | No fixed bar/Beacon ownership | Owns page-access and return-location state. |
-| 34 | `TokenActionBuilder0.4.0.js` | No persistent state found | None | Owns generated ability definitions only. |
+| 34 | `TokenActionBuilder0.5.0.js` | No persistent state found | None | Owns generated ability definitions only. |
 | 35 | `Audit.js` | No owned state; reads configured roots | Read-only | Historical/current state reporting only. |
 | 36 | `StateWipe.js` | No owned state; deletes configured roots including AE, ADR, SE, AoEBoom, Executioner, HPManager, AuraToggle | No bars/Beacon | Destructive administrative utility, not a migration mechanism. |
 | 37 | `BeaconAttributeTester.js` | `state.BeaconAttributeTester.snapshots` | Generic named `getSheetItem`/`setSheetItem`; may compare delayed values | Owns test snapshots only. |
