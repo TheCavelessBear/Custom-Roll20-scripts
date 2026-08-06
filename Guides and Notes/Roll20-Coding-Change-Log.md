@@ -1,6 +1,6 @@
 # Roll20 Coding Change Log
 
-Last updated: 2026-08-04
+Last updated: 2026-08-06
 
 ## Purpose
 
@@ -19,10 +19,11 @@ For future updates:
 | Component | Current build | Replaces | Required companions |
 | --- | --- | --- | --- |
 | HandoutAccess | `HandoutAccess1.1.js` | `HandoutAccess1.0.js` | Load before LootManager when handout loot is used |
-| LootManager | `LootManager1.3.js` | `LootManager1.2.js` | HandoutAccess 1.1 for handout loot; Experimental Mod sandbox with Beacon `getSheetItem` and `setSheetItem`; optional Jukebox tracks named `grab` and `coins` |
-| ActionEconomyV2 | `ActionEconomyV2.3.2.md` | All earlier AE builds in this log | `AoEBoom1.1.md` and `SaveEffects1.1.md` for corrected Wall of Fire recurring damage |
-| TokenTriggers | `TokenTriggers1.3.3.js` | TokenTriggers 1.0.0 through 1.3.2 | `ActionEconomyV2.8.2.js` for PC/Ally-aware turn-order removal; ADR/SaveEffects may call the generic threshold API |
-| AttackDamageResolver | `AttackDamageResolver1.3.1.js` | `AttackDamageResolver1.3.js` | `TokenTriggers1.3.3.js` when Bloodied, Relentless Endurance, or HP 0 triggers are used |
+| LootManager | `LootManager1.4.js` | `LootManager1.3.1.js` | HandoutAccess 1.1 for handout loot; Experimental Mod sandbox with Beacon `getSheetItem` and `setSheetItem`; optional Jukebox tracks named `grab` and `coins` |
+| TokenAnimator | `TokenAnimator1.4.js` | `TokenAnimator1.3.js` | None |
+| ActionEconomyV2 | `ActionEconomyV2.8.3.js` | `ActionEconomyV2.8.2.js` | Current installed companions; Dark One’s Blessing uses Beacon async sheet reads |
+| TokenTriggers | `TokenTriggers1.3.3.js` | TokenTriggers 1.0.0 through 1.3.2 | `ActionEconomyV2.8.3.js` for PC/Ally-aware turn-order removal; ADR/SaveEffects may call the generic threshold API |
+| AttackDamageResolver | `AttackDamageResolver1.3.2.js` | `AttackDamageResolver1.3.1.js` | `ActionEconomyV2.8.3.js`; `TokenTriggers1.3.3.js` when Bloodied, Relentless Endurance, or HP 0 triggers are used |
 | SaveEffects | `SaveEffects1.3.1.js` | `SaveEffects1.3.js` | `TokenTriggers1.3.3.js` when TokenTriggers should react to SE damage |
 | HPManager | `HPManager1.1.1.js` | `HPManager1.1.js` | No new dependency; healing behavior is unchanged |
 | AoEBoom | `AoEBoom1.1.md` | Original AoEBoom source | `ActionEconomyV2.3.2.md` and `SaveEffects1.1.md` for corrected directional-hazard saves and damage |
@@ -35,17 +36,52 @@ For future updates:
 ## Installation and Compatibility Notes
 
 - No build created in this conversation requires a StateWipe unless a future entry expressly says otherwise.
-- Load `HandoutAccess1.1.js` before `LootManager1.3.js` when using `handout:` loot entries. LootManager starts safely without the dependency and reports it only when a handout is taken.
+- Load `HandoutAccess1.1.js` before `LootManager1.4.js` when using `handout:` loot entries. LootManager starts safely without the dependency and reports it only when a handout is taken.
 - Existing AE, TokenTriggers, ADR, SE, and AoEBoom state is normalized or preserved by the current builds.
 - Active Wall of Fire hazards created before installing AE 2.3.2 and AoEBoom 1.1 must be recast. Existing hazard records do not contain the newly stored save configuration.
 - Blood Frenzy requires AE 2.3 or later and TokenTriggers 1.2 or later.
 - Blood Frenzy sound playback requires TokenTriggers 1.2.2 or later.
 - Relentless Endurance requires TokenTriggers 1.3 or later.
-- Reliable ADR damage-trigger integration requires ADR 1.3.1 and TokenTriggers 1.3.3.
+- Reliable ADR damage-trigger integration requires ADR 1.3.1 or later and TokenTriggers 1.3.3.
 - Reliable SaveEffects damage-trigger integration requires SaveEffects 1.3.1 and TokenTriggers 1.3.3.
 - The current `StateWipe.md` predates TokenTriggers and DoorSounds Registry state. Its configured wipe list does not currently include `state.TokenTriggers` or `state.DoorSounds`.
 
 # Change History
+
+## 2026-08-06 - Combined token animations and ordinary-item consumption
+
+### TokenAnimator 1.4 and LootManager 1.4
+
+Files: `TokenAnimator1.4.js` and `LootManager1.4.js`.
+
+Changes:
+
+- TokenAnimator generalizes the existing `animate` command and public method so scale, rotation, page-scaled movement, and opacity can run in any supported combination through one transient animation record, one timer, one duration, and one easing function. The combined command uses `--scale`, `--degrees` or `--rotation`, paired `--direction` and `--distance`, and `--opacity`; `--complete|delete` and `--complete|gmlayer` still run only after final animated values are applied.
+- Combined requests validate every supplied property, alias, movement pair, page scale, position, token dimensions, duration, easing, and completion action before storing a new baseline, cancelling an active animation, starting a timer, or mutating the token. Supplying both rotation aliases requires valid, nonconflicting values.
+- Dedicated move, rotate, fade, scale, preset, restore, baseline, cancellation, legacy `!tokensize`, and public API workflows remain available. Scale remains relative to the stored baseline, and movement remains relative to the page's configured distance scale.
+- LootManager adds `!loot consume --token|TOKEN_ID --name|ITEM NAME [--quantity|N]`, with selected-token fallback and a default quantity of 1. It matches only ordinary `item:` names after case-insensitive trim/internal-whitespace normalization, aggregates duplicates, and decrements or removes matching records in source order.
+- Consume requests share the existing per-source take lock and re-read the current LOOT block after acquiring it. Invalid, nonpositive, unsafe, nonexistent, or insufficient requests, locked containers, and unresolved inline gp leave GM Notes unchanged. GP, handouts, keys, invalid preserved lines, and container metadata are never candidates for consumption.
+- Successful consumption reuses the existing writer, empty-source deletion policy, item sound, public feedback, and refreshed inspection card, preserving GM Notes outside the edited LOOT block.
+
+Why:
+
+- Complex token effects previously required separate TokenAnimator calls whose per-token cancellation behavior prevented simultaneous property animation.
+- Ordinary loot could be taken through generated cards but had no exact-name quantity command for consumable use across duplicate item records.
+
+Compatibility and migration:
+
+- Replace `TokenAnimator1.3.js` with `TokenAnimator1.4.js` and `LootManager1.3.1.js` with `LootManager1.4.js`. The untouched prior builds are archived at `Scripts/Prior Versions/TokenAnimator1.3.js` and `Scripts/Prior Versions/LootManager1.3.1.js`.
+- No StateWipe, state migration, re-registration, Beacon inventory change, dependency change, or existing macro replacement is required. Existing TokenAnimator commands/aliases/APIs and LootManager commands/public inspection API remain compatible.
+
+Validation performed:
+
+- `node --check` passed for both active scripts.
+- Focused deterministic scenarios cover shared TokenAnimator interpolation, atomic invalid-request behavior, cancellation, completion, duration-zero behavior, aliases, dedicated-command compatibility, normalized duplicate LootManager consumption in source order, exact-match and quantity failures, protected record kinds, locked/unresolved sources, GM Notes preservation, deletion, and take/consume lock contention.
+- The full mocked active-script suite passed after updating the active manifest and handler contracts to the new filenames.
+
+Known limitations:
+
+- The local harness does not prove live Roll20 timer/render cadence, token interpolation presentation, chat/template rendering, player permission exposure, Jukebox playback, GM Notes persistence, or real sandbox event scheduling. Confirm those behaviors in the dedicated Test Game after upload.
 
 ## 2026-08-04 - Token Action Builder optional attack ability modifier
 
@@ -76,6 +112,64 @@ Validation performed:
 Known limitations:
 
 - The local harness validates generated macro text but does not render the Roll20 attack or damage templates; confirm generated actions in the dedicated Test Game after upload.
+
+## 2026-08-03 - LootManager successful-unlock side failure visibility
+
+### LootManager 1.3.1
+
+File: `LootManager1.3.1.js`.
+
+Changes:
+
+- After a successful Sleight-of-Hand unlock, LootManager now checks the existing `setContainerSide(..., 'open')` result. If the token cannot change to the configured open side, it keeps the successful unlocked GM Notes state, result card, configured sound behavior, and loot display, while sending the clicking player a concise visible error card.
+
+Why:
+
+- The successful path previously ignored a false side-change result. The GM received its existing warning, but the player received no explanation that the lock was open while the visual side failed.
+
+Compatibility and migration:
+
+- Replace `LootManager1.3.js` with `LootManager1.3.1.js`; the untouched prior file is archived at `Scripts/Prior Versions/LootManager1.3.js`.
+- No state migration, key-system change, macro replacement, or StateWipe is required.
+
+Validation performed:
+
+- Local unlock scenarios cover non-GM button generation/routing, skill/DC/d20 result, lock persistence, retry, error paths, GM-notes write failure, and the player-visible side-failure message.
+
+Known limitations:
+
+- The harness does not prove live Roll20 chat-button delivery, player permissions, UI rendering, GM Notes authorization, or Jukebox playback.
+
+## 2026-08-03 - ADR card encoding safety and Dark One’s Blessing Beacon correction
+
+### AttackDamageResolver 1.3.2 and ActionEconomyV2 2.8.3
+
+Files: `AttackDamageResolver1.3.2.js` and `ActionEconomyV2.8.3.js`.
+
+Changes:
+
+- ADR replaces the confirmed committed mojibake that could appear in its attack-guidance, damage, Uncanny Dodge, damage-reduction, Fire Shield, and target-slot cards. It now escapes externally supplied template-field values (names, cached labels/types, and AE-provided notes) before assembling Roll20 template markup; literal card `<br>` separators and buttons remain intentional markup.
+- AE now calculates Dark One’s Blessing with asynchronous Beacon `level` plus `charisma_mod` reads, falling back to the current `charisma` score only when the modifier is unavailable. The temp-HP application and lethal death-trigger processing await this result, preserving the existing greater-temp-HP, kill, nearby-death, friendly-death-exclusion, and deduplication behavior.
+
+Why:
+
+- The audit confirmed source-level mojibake and unescaped dynamic ADR card fields.
+- The prior blessing calculation used cached `base_level`, which is not total character level and could be unavailable before cache refresh.
+
+Compatibility and migration:
+
+- Archive copies are preserved at `Scripts/Prior Versions/AttackDamageResolver1.3.1.js` and `Scripts/Prior Versions/ActionEconomyV2.8.2.js`. Install the replacement files in their existing upload positions; do not install either archived build.
+- No StateWipe, macro replacement, re-registration, or data migration is required. Existing public APIs, TokenTriggers processing, and AE ownership are unchanged.
+
+Validation performed:
+
+- `node --check` passed for both replacements and the new focused scenario.
+- The focused local scenario covers escaped ADR fields/no malformed marker sequences and Dark One’s Blessing total-level, modifier, fallback, greater-temp-HP, kill, nearby, and friendly-exclusion behavior.
+- Full local and active-load validation is recorded with the task handoff after this entry.
+
+Known limitations:
+
+- The local harness captures raw `sendChat` strings but does not render Roll20 templates. Confirm card rendering and live Beacon synchronization in the dedicated Test Game.
 
 ## 2026-08-03 - Final TokenTriggers HP persistence and private-helper isolation
 

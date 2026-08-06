@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { startedRuntime } = require('../harness/script-loader');
 
-// Evidence: ADR applyDamageToToken (AttackDamageResolver1.3.1.js) consumes
+// Evidence: ADR applyDamageToToken (AttackDamageResolver1.3.2.js) consumes
 // bar 2 before bar 1, resolves Bar 1 through TokenTriggers, then mirrors the
 // final resolved value to represented-token Beacon HP.
 test('ADR consumes temporary HP before HP for a represented Beacon token', async () => {
@@ -50,7 +50,7 @@ test('ADR preserves TokenTriggers resolved Relentless HP in Bar 1, Beacon, and u
 });
 
 // Evidence: ADR only explicitly calls AE processDamageResult on a positive-to-
-// zero HP transition (AttackDamageResolver1.3.1.js). This is not a
+// zero HP transition (AttackDamageResolver1.3.2.js). This is not a
 // proof of live Roll20 native-event deduplication.
 test('ADR makes one explicit AE handoff for a lethal cached-damage application', async () => {
   const { runtime } = await startedRuntime({ fixtures: true });

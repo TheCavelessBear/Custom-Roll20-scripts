@@ -37,7 +37,7 @@ class EventBus {
 
   async emit(event, ...args) {
     const handlers = [...(this.handlers.get(event) || [])];
-    this.dispatches.push({ event, handlerCount: handlers.length });
+    this.dispatches.push({ event, handlerCount: handlers.length, args });
     for (const registration of handlers) {
       const { handler, source } = registration;
       const previousSource = this.activeSource;

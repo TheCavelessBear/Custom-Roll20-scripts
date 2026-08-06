@@ -23,7 +23,7 @@ test('HPManager healing caps HP and does not invoke AE damage processing', async
 
 // Evidence: ADR stores the pre-damage bar snapshot and `!adr undo` restores
 // bars plus represented Beacon current/max HP and temp HP
-// (AttackDamageResolver1.3.1.js).
+// (AttackDamageResolver1.3.2.js).
 test('ADR undo restores owned bars and represented Beacon values', async () => {
   const { runtime } = await startedRuntime({ fixtures: true });
   const token = runtime.store.getObj('graphic', 'token-pc');
