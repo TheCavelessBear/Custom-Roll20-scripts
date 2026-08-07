@@ -103,7 +103,7 @@ test('LootManager consume preserves non-item records and refuses locked or unres
 test('LootManager consume shares the take lock and honors deleteWhenEmpty', async () => {
   const { runtime } = await startedRuntime({ fixtures: true });
   const source = addLoot(runtime, 'consume-lock', ['LOOT', 'item: Potion | 2', 'END LOOT'].join('\n'));
-  const lootHandler = runtime.eventBus.handlers.get('chat:message').find((entry) => entry.source === 'LootManager1.4.js').handler;
+  const lootHandler = runtime.eventBus.handlers.get('chat:message').find((entry) => entry.source === 'LootManager1.5.js').handler;
   const originalSet = source.set.bind(source);
   let nested = false;
   source.set = (key, value) => {

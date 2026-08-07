@@ -1533,6 +1533,28 @@ ADR remembered-target routing was used for the Disarm command. A separate AE-gen
 
 The later-edit ideas listed under Token Action Builder 0.4.0 remain unimplemented.
 
+## 2026-08-06 - StateWipe 2.0 profile maintenance
+
+### Components and versions
+
+Files: `ActionEconomyV2.9.0.js`, `AttackDamageResolver1.4.0.js`, `SaveEffects1.4.0.js`, `AoEBoom1.2.0.js`, `SmartAoE0.31.js`, `TokenTriggers1.4.0.js`, `TokenAnimator1.5.js`, `LootManager1.5.js`, `DoorSounds1.1.0.js`, and `StateWipe2.0.0.js`.
+
+Archived unchanged: `ActionEconomyV2.8.3.js`, `AttackDamageResolver1.3.2.js`, `SaveEffects1.3.1.js`, `AoEBoom1.1.2.js`, `SmartAoE0.30.js`, `TokenTriggers1.3.3.js`, `TokenAnimator1.4.js`, `LootManager1.4.js`, `DoorSounds1.0.0.js`, and `StateWipe1.0.0.js` under `Scripts/Prior Versions`.
+
+Changes:
+
+- Replaced the former blind root deletion command with GM-only preview/confirmation profiles: prune, combat, scene, setting, campaign, and factory all.
+- Added owner maintenance APIs with dry-run structured summaries and owner-side cleanup for AE, ADR module cache and undo state, SaveEffects sources, AoEBoom paths/templates, SmartAoE links, TokenTriggers runtime presentation, TokenAnimator baselines, LootManager keyrings, and DoorSounds assignments.
+- `all` owner-cleans before deleting all suite roots, shared `torii`, and legacy TokenSizeAnimator/AuraToggle; it preserves TheAaron and unrecognized roots.
+
+Compatibility and validation:
+
+- Existing campaign state is migrated in place; no StateWipe is required. Selective profiles do not require a restart. Factory `all` requires a sandbox restart after completion.
+- Node syntax validation passed for all revised active scripts, the manifest, and the new scenario. The full local harness passed 49/49 tests covering active filenames/public APIs, preview no-mutation and owner-summary parity, every profile boundary, permanent PC/Ally configuration survival, reversal of token/Beacon presentation, ADR module cache, TokenTriggers HP-zero preservation, owner-created path/token cleanup, idempotent selective execution, and factory root boundaries.
+
+Known limitations:
+
+- A selective profile preserves records whose live reversal target cannot be proven, reporting a warning rather than risking token/sheet mutation. Live Roll20 object, path, door, Beacon, and animation side effects still require in-campaign verification.
 # Append Template for Future Updates
 
 Copy this section above the prior dated entries and complete it for each future build.

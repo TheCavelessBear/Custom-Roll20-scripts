@@ -32,7 +32,7 @@ async function startedTokenAnimator(tokens) {
     campaign,
     objects: [...startupObjects, ...tokens]
   });
-  const script = path.resolve(__dirname, '..', '..', 'Scripts', 'TokenAnimator1.4.js');
+  const script = path.resolve(__dirname, '..', '..', 'Scripts', 'TokenAnimator1.5.js');
 
   vm.runInContext(fs.readFileSync(script, 'utf8'), runtime.context, { filename: script });
   await runtime.ready();
