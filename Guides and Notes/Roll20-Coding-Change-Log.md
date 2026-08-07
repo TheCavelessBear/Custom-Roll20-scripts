@@ -1447,3 +1447,7 @@ Deferred items:
 
 - Record related ideas that were reviewed but not implemented.
 ```
+
+## 2026-08-07 — Persistent orphan-state cleanup
+
+Updated `GroupInitiative0.9.42.js`, `ActionEconomyV2.8.3.js`, `SaveEffects1.3.2.js`, `AttackDamageResolver1.3.2.js`, `AoEBoom1.1.3.js`, `SmartAoE0.30.1.js`, `DoorSounds1.0.1.js`, `Executioner1.0.1.js`, `MapChange1.8.1.js`, `StateWipe1.1.0.js`, `BeaconAttributeTester1.0.1.js`, `TokenTriggers1.3.4.js`, `TokenAnimator1.3.1.js`, and `LootManager1.3.1.js`. Added local owner pruning on token, character, player, page, path, and door destruction; StateWipe remains a separately invoked dry-run/apply fallback and whole-root wipe. AE now uses schema-aware cleanup for direct token state, nested source/target records, concentration mechanics, pending fallback queues, and character registries. TokenAnimator safely migrates then removes its legacy root. No state wipe or migration command is required. Validation: `node --check` passed for all 14 revised scripts; `node --test tests/scenarios/07-orphan-state-cleanup.test.js` passed 4/4; `node tests/run-tests.js` passed 26/26; `git diff --check` passed. Limitation: Roll20 lifecycle ordering, campaign object deletion, and chat-card rendering remain live-campaign verification work.

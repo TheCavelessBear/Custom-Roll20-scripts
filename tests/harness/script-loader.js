@@ -124,7 +124,7 @@ function assertHandlerContracts(runtime, manifest) {
   }
 }
 
-async function startedRuntime({ fixtures = false } = {}) {
+async function startedRuntime({ fixtures = false, beforeReady } = {}) {
   const { Roll20Runtime } = require('./roll20-runtime');
   const manifest = require('../fixtures/active-script-manifest');
   const { characters, beaconValues } = require('../fixtures/characters');
@@ -135,10 +135,11 @@ async function startedRuntime({ fixtures = false } = {}) {
   const runtime = new Roll20Runtime({ campaign, objects, beaconValues: fixtures ? beaconValues : {} });
   const outcomes = loadActiveScripts(runtime, manifest, repositoryRoot);
   await Promise.resolve();
-  const beforeReady = snapshotReadyBindings(runtime, manifest);
-  for (const [key, probe] of beforeReady) if (probe.exists) throw new Error(`${key} was exposed before its owner ready phase`);
+  if (beforeReady) await beforeReady(runtime);
+  const readyBindingsBefore = snapshotReadyBindings(runtime, manifest);
+  for (const [key, probe] of readyBindingsBefore) if (probe.exists) throw new Error(`${key} was exposed before its owner ready phase`);
   await runtime.ready();
-  assertReadyOwnedBindings(runtime, manifest, beforeReady);
+  assertReadyOwnedBindings(runtime, manifest, readyBindingsBefore);
   await assertPublicApis(runtime, manifest);
   assertHandlerContracts(runtime, manifest);
   return { runtime, outcomes };
