@@ -1,6 +1,6 @@
 # ActionEconomyV2 command-system reference
 
-Active source: `Scripts/ActionEconomyV2.8.3.js`.  
+Active source: `Scripts/ActionEconomyV2.9.0.js` (version 2.9.0).
 Complexity: high-variance command system.  
 Audience: mixed player-facing, setup, administrative, diagnostic, and generated commands. Only `!ae setup ...` and `!ae registry ...` actually enforce `playerIsGM`; other routes have no caller/controller check even when their output is whispered to GM or their menu labels say “Admin.”  
 Primary roots: `!ae`, `!ae-effect`, `!ae-con`, `!ae-terrain`, `!ae-hazard`, `!ae-ongoing`, `!ae-aoe`, `!ae-telekinesis`, `!ae-disarm`, `!ae-summon`, `!ae-visual`, `!ae-ability`, and `!ae-savemod`.
@@ -103,7 +103,7 @@ The first four spend an action, bonus action, one configured attack, or a spell/
 ### Mounts and forced movement
 
 ```text
-!ae mount MOUNT_ID [--side SIDE_NUMBER]
+!ae mount MOUNT_ID [--side SIDE_NUMBER] [--side-offset SIGNED_INTEGER]
 !ae dismount [TOKEN_ID]
 !ae push TARGET_ID FEET
 !ae pull TARGET_ID FEET
@@ -112,7 +112,9 @@ The first four spend an action, bonus action, one configured attack, or a spell/
 !ae forcemove SOURCE_ID TARGET_ID DIRECTION FEET
 ```
 
-`mount` uses every actually selected token as a rider and therefore requires selection; `MOUNT_ID` is one explicit mount token. `--side` selects a rollable-token side for the mounted appearance when supported. `dismount` uses `resolveTargets`.
+`mount` uses every actually selected token as a rider and therefore requires selection; `MOUNT_ID` is one explicit mount token. `--side` selects the rider's rollable-token side for a combined mounted appearance. `--side-offset` accepts a complete signed base-10 safe integer, including `0`, and uses the targeted mount's current one-based side plus that offset as the rider side. If both options are present, `--side` takes precedence regardless of order; a bare or invalid `--side` uses the existing invalid-mounted-side GM warning and does not fall back to the offset.
+
+Either valid side option uses the existing combined-mount behavior: the rider adopts the selected side and mount presentation, the mount moves to the GM layer, and normal movement, restoration, state, and cleanup rules apply. With neither side option, mounting retains the legacy non-combined relationship. Missing, decimal, malformed, option-token, non-finite, or unsafe offsets whisper an invalid-offset warning to GM without a mount mutation or movement cost. A computed side outside the rider's usable rollable sides uses the existing invalid-mounted-side GM warning before mount changes. `dismount` uses `resolveTargets`.
 
 `push` and `pull` use each actually selected token as the source and the explicit `TARGET_ID` as the moved token. `pushfrom`, `pullfrom`, and `forcemove` use explicit source and target IDs, but the active shared guard still requires at least one otherwise-unused actual selection.
 
@@ -120,6 +122,9 @@ The first four spend an action, bonus action, one configured attack, or a spell/
 
 ```text
 !ae mount @{target|Mount|token_id} --side 2
+!ae mount @{target|Mount|token_id} --side-offset +1
+!ae mount @{target|Mount|token_id} --side-offset -1 --side 2
+!ae mount @{target|Mount|token_id}
 !ae forcemove @{selected|token_id} @{target|Moved Token|token_id} away 15
 ```
 

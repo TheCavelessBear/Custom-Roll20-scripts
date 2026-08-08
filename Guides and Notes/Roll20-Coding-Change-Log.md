@@ -1,6 +1,6 @@
 # Roll20 Coding Change Log
 
-Last updated: 2026-08-03
+Last updated: 2026-08-07
 
 ## Purpose
 
@@ -20,7 +20,7 @@ For future updates:
 | --- | --- | --- | --- |
 | HandoutAccess | `HandoutAccess1.1.js` | `HandoutAccess1.0.js` | Load before LootManager when handout loot is used |
 | LootManager | `LootManager1.3.js` | `LootManager1.2.js` | HandoutAccess 1.1 for handout loot; Experimental Mod sandbox with Beacon `getSheetItem` and `setSheetItem`; optional Jukebox tracks named `grab` and `coins` |
-| ActionEconomyV2 | `ActionEconomyV2.3.2.md` | All earlier AE builds in this log | `AoEBoom1.1.md` and `SaveEffects1.1.md` for corrected Wall of Fire recurring damage |
+| ActionEconomyV2 | `ActionEconomyV2.9.0.js` | `ActionEconomyV2.8.3.js` | Existing AE companions remain unchanged; no new dependency |
 | TokenTriggers | `TokenTriggers1.3.3.js` | TokenTriggers 1.0.0 through 1.3.2 | `ActionEconomyV2.8.2.js` for PC/Ally-aware turn-order removal; ADR/SaveEffects may call the generic threshold API |
 | AttackDamageResolver | `AttackDamageResolver1.3.1.js` | `AttackDamageResolver1.3.js` | `TokenTriggers1.3.3.js` when Bloodied, Relentless Endurance, or HP 0 triggers are used |
 | SaveEffects | `SaveEffects1.3.1.js` | `SaveEffects1.3.js` | `TokenTriggers1.3.3.js` when TokenTriggers should react to SE damage |
@@ -46,6 +46,39 @@ For future updates:
 - The current `StateWipe.md` predates TokenTriggers and DoorSounds Registry state. Its configured wipe list does not currently include `state.TokenTriggers` or `state.DoorSounds`.
 
 # Change History
+
+## 2026-08-07 - Mount side-offset selection
+
+### ActionEconomyV2 2.9.0
+
+Files: `ActionEconomyV2.9.0.js`, archived `Scripts/Prior Versions/ActionEconomyV2.8.3.js`, Architecture registries, ActionEconomyV2 macro references, and local mount regression coverage.
+
+Problem or goal:
+
+- Allow `!ae mount MOUNT_ID --side-offset N` to select a combined rider side relative to the targeted mount's current one-based rollable-token side.
+
+Changes:
+
+- `--side N` now has precedence whenever it is present, regardless of option order. A bare or invalid `--side` continues through the existing combined-side validation warning and never falls back to an offset.
+- Without `--side`, `--side-offset N` accepts only a complete signed base-10 safe integer, including zero. It adds that offset to the targeted mount's current one-based side and delegates to the existing combined-mount path.
+- Missing, decimal, malformed, option-token, non-finite, and unsafe offsets whisper a clear GM warning before movement cost, mount state, or presentation changes. An unusable computed rider side continues through the existing combined-side warning before mounting mutations.
+- A command without either option retains the existing non-combined mount relationship exactly. The existing combined validation, movement cost, presentation, restoration, state, and cleanup behavior is reused unchanged.
+
+Compatibility and migration:
+
+- Replace active `ActionEconomyV2.8.3.js` with `ActionEconomyV2.9.0.js`; the unchanged prior build is archived at `Scripts/Prior Versions/ActionEconomyV2.8.3.js`.
+- Existing `state.ActionEconomyV2` mount records, commands, public APIs, non-combined mounts, combined-mount restoration, and cleanup remain compatible. No StateWipe, migration, re-registration, macro replacement, or effect recast is required.
+
+Validation performed:
+
+- `node --check Scripts/ActionEconomyV2.9.0.js`, `node --check tests/scenarios/08-action-economy-mount-side-offset.test.js`, and `node --check tests/fixtures/active-script-manifest.js` passed.
+- `node --test tests/scenarios/08-action-economy-mount-side-offset.test.js` passed all 6 tests: positive, negative, and zero offsets; direct-side precedence including terminal and post-offset invalid sides; strict invalid-offset rejection; invalid computed sides while the rider is active in combat; legacy mount behavior; and combined dismount restoration/cleanup.
+- `node tests/run-tests.js` passed all 32 local tests. Whitespace checks passed for the documentation/test changes and the archive-to-active source diff; the versioned active file preserves two inherited trailing-space lines unchanged from 2.8.3.
+- Macro references were updated to the active 2.9.0 filename and checked for stale `ActionEconomyV2.8.3` active-reference text.
+
+Known limitations:
+
+- The local harness verifies command parsing and controlled token/state behavior, but not Roll20's live selected/target substitution, rollable-token rendering, layer ordering, or Beacon/event timing. Verify the documented mount cases in the dedicated live Test Game after upload.
 
 ## 2026-08-03 - Final TokenTriggers HP persistence and private-helper isolation
 

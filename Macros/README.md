@@ -27,7 +27,7 @@ This index represents every active `.js` file directly under `Scripts/`, in the 
 | 19 | [Fetch](./Fetch.md) | `Fetch.js` / header 2.2.1, runtime 2.2.0 | Fetch object/property substitutions; `!fetchconfig`, `!fetchprops*` | embedded command/scripting language | player-facing meta tool + GM diagnostics | command-language reference |
 | 20 | [TurnMarker](./TurnMarker1.md) | `TurnMarker1.js` / 1.3.12 | `!tm`, `!turnmarker`, `!eot`, `!pot` | branching command script | player turn controls + GM config | command-system reference |
 | 21 | [APILogic](./APILogic.md) | `APILogic.js` / 2.0.9 | `{& if ...}`, `{& define ...}` | embedded command/scripting language | player-usable meta tool | command-language reference |
-| 22 | [ActionEconomyV2](./ActionEconomyV2.8.3.md) | `ActionEconomyV2.8.3.js` / 2.8.3 | `!ae` and specialized `!ae-*` | high-variance command system | player-facing + GM/admin/generated | command-system reference |
+| 22 | [ActionEconomyV2](./ActionEconomyV2.9.0.md) | `ActionEconomyV2.9.0.js` / 2.9.0 | `!ae` and specialized `!ae-*` | high-variance command system | player-facing + GM/admin/generated | command-system reference |
 | 23 | [ZeroFrame](./ZeroFrame.md) | `ZeroFrame.js` / 1.2.4 | `!0`, meta-operation loop | embedded command/scripting language | player-facing meta tool + configuration | command-language reference |
 | 24 | [SaveEffects](./SaveEffects1.3.2.md) | `SaveEffects1.3.2.js` / 1.3.2 | `!se` | high-variance command system | player-usable | command-system reference |
 | 25 | [MetaScriptToolbox](./MetaScriptToolbox.md) | `MetaScriptToolbox.js` / 0.0.2 | none | simple command script (no chat command) | no direct commands | dependency/API context only |

@@ -21,6 +21,7 @@ Run it with `npm.cmd test` from this directory on Windows, or `node run-tests.js
 - explicit-hook-first and native-event-first duplicate suppression for one TokenTriggers-owned Bar 1 transition;
 - ADR damage undo across owned bars and represented Beacon current/max writes;
 - represented Beacon-PC and unlinked-NPC bar behavior.
+- AE combined mount side offsets, explicit-side precedence, strict invalid-offset rejection, legacy non-combined mounts, and combined-dismount restoration/cleanup.
 
 Every scenario includes a source/registry evidence comment. The active files and the Architecture registry remain the technical source of truth; the manifest makes the test load order, global ownership, allowed legacy overwrites, typed public APIs, and handler owners explicit. ScriptCards is an active-source async IIFE: the local contract awaits its Promise and validates the resolved `ObserveTokenChange` function. Direct synchronous `ScriptCards.ObserveTokenChange` availability remains a current integration limitation that requires live verification; the harness does not replace or alias the global.
 
